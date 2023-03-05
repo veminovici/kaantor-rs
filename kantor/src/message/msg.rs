@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use super::{FromId, HopId, ToId};
 
 pub struct Message<P> {
@@ -5,6 +7,17 @@ pub struct Message<P> {
     tid: ToId,
     hid: HopId,
     payload: P,
+}
+
+impl<P> Debug for Message<P> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Message")
+            .field("fid", &self.fid)
+            .field("tid", &self.tid)
+            .field("hid", &self.hid)
+            .field("payload", &"------")
+            .finish()
+    }
 }
 
 impl<P> Message<P> {
@@ -23,6 +36,10 @@ impl<P> Message<P> {
     pub fn payload(&self) -> &P {
         &self.payload
     }
+}
+
+impl<P> actix::Message for Message<P> {
+    type Result = ();
 }
 
 pub mod builder {
