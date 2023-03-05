@@ -1,10 +1,14 @@
 //! Main functionality for the protocol messages.
 
 mod builder;
-mod routing;
+mod fid;
+mod hid;
+mod tid;
 
 pub use builder::*;
-pub use routing::*;
+pub use fid::*;
+pub use hid::*;
+pub use tid::*;
 
 use actix::prelude::*;
 use std::fmt::Debug;

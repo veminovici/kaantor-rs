@@ -9,7 +9,7 @@ pub use proxies::*;
 
 use crate::{
     graph::GraphMsg,
-    protocol::{states, ProtocolBuilder as ProBuilder, ProtocolMsg},
+    protocol::{states, Builder as ProBuilder, ProtocolMsg},
     proxy::{Proxy, ProxyBuilder as PxyBuilder},
     ActorId,
 };

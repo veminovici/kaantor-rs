@@ -1,5 +1,5 @@
 use actix::prelude::*;
-use kantor::{graph::GraphMsg, protocol::ProtocolMsg, *, node::builder::NodeBuilder};
+use kantor::{graph::GraphMsg, node::builder::NodeBuilder, protocol::ProtocolMsg, *};
 
 #[derive(Debug, Message, Clone, Copy)]
 #[rtype(result = "()")]
