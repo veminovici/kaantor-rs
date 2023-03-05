@@ -1,3 +1,4 @@
+pub mod builder;
 mod cfgmsg;
 mod proxies;
 
