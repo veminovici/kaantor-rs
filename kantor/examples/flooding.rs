@@ -1,5 +1,5 @@
 use actix::prelude::*;
-use kantor::{graph::GraphMsg, node::builder::Builder as NBuilder, protocol::ProtocolMsg, *};
+use kantor::{node::builder::Builder as NBuilder, protocol::Message as ProMsg, *};
 
 #[derive(Debug, Message, Clone, Copy)]
 #[rtype(result = "()")]
@@ -7,6 +7,9 @@ enum MyMessage {
     Position(usize),
     //Forward(ActorId, usize),
 }
+
+type PMsg = ProMsg<MyMessage>;
+type GMsg = graph::GraphMsg<PMsg>;
 
 struct MyActor {
     aid: ActorId,
@@ -35,23 +38,19 @@ impl MyActor {
     }
 }
 
-impl Handler<GraphMsg<ProtocolMsg<MyMessage>>> for MyActor {
+impl Handler<GMsg> for MyActor {
     type Result = ();
 
-    fn handle(
-        &mut self,
-        msg: GraphMsg<ProtocolMsg<MyMessage>>,
-        _ctx: &mut Self::Context,
-    ) -> Self::Result {
+    fn handle(&mut self, msg: GMsg, _ctx: &mut Self::Context) -> Self::Result {
         println!("Actor {:?} received a graph {:?} message", self.aid, msg);
         self.proxies.handle_msg(msg);
     }
 }
 
-impl Handler<ProtocolMsg<MyMessage>> for MyActor {
+impl Handler<PMsg> for MyActor {
     type Result = ();
 
-    fn handle(&mut self, msg: ProtocolMsg<MyMessage>, _: &mut Context<Self>) {
+    fn handle(&mut self, msg: PMsg, _: &mut Context<Self>) {
         println!("Actor {:?} received a protocol {:?} message", self.aid, msg);
     }
 }

@@ -9,14 +9,13 @@ pub use proxies::*;
 
 use crate::{
     graph::GraphMsg,
-    protocol::{states, Builder as ProBuilder, ProtocolMsg},
+    protocol::{states, Builder as ProBldr, Message as PMsg},
     proxy::{Builder as PxyBuilder, Proxy},
     ActorId,
 };
 use actix::{dev::ToEnvelope, prelude::*};
 
-type PMsg<P> = ProtocolMsg<P>;
-type GMsg<P> = GraphMsg<ProtocolMsg<P>>;
+type GMsg<P> = GraphMsg<PMsg<P>>;
 
 /// The actor node for the distributed systems.
 /// The actor can receive `CfgMessage` and protocol messages with a
@@ -55,8 +54,8 @@ where
     }
 
     /// Returns a protocol builder.
-    pub fn protocol_builder(&self) -> ProBuilder<P, states::WithFromId> {
-        ProBuilder::from_aid(self.aid)
+    pub fn protocol_builder(&self) -> ProBldr<P, states::WithFromId> {
+        ProBldr::from_aid(self.aid)
     }
 
     fn get_cfg_proxy(aid: ActorId, addr: Addr<A>) -> Proxy<GMsg<P>> {
@@ -94,7 +93,7 @@ where
     }
 
     /// Does send a protocol message to the node.
-    pub fn do_send(&mut self, msg: ProtocolMsg<P>) {
+    pub fn do_send(&mut self, msg: PMsg<P>) {
         self.addr.do_send(msg)
     }
 }

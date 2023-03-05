@@ -1,5 +1,6 @@
 //! Implements the builder patter for the procotol messages.
 //!
+use super::Message;
 use crate::{protocol::*, ActorId};
 use std::marker::PhantomData;
 
@@ -38,8 +39,8 @@ impl<P> From<ActorId> for Builder<P, states::WithFromId> {
     }
 }
 
-impl<P> From<ProtocolMsg<P>> for Builder<P, states::WithPayload> {
-    fn from(msg: ProtocolMsg<P>) -> Self {
+impl<P> From<Message<P>> for Builder<P, states::WithPayload> {
+    fn from(msg: Message<P>) -> Self {
         Builder::<P>::from_message(msg)
     }
 }
@@ -57,7 +58,7 @@ impl<P> Builder<P, states::New> {
 
     /// Initializes the building chain by creating a builder from a received
     /// `Message` instance.
-    pub fn from_message(msg: ProtocolMsg<P>) -> Builder<P, states::WithPayload> {
+    pub fn from_message(msg: Message<P>) -> Builder<P, states::WithPayload> {
         Builder::<P, states::WithPayload> {
             fid: Some(msg.fid),
             tid: Some(msg.tid),
@@ -131,8 +132,8 @@ impl<P> Builder<P, states::WithPayload> {
 
 impl<P> Builder<P, states::Ready> {
     /// Finalizes the chain by building the `Message` instance.
-    pub fn build(self) -> ProtocolMsg<P> {
-        ProtocolMsg {
+    pub fn build(self) -> Message<P> {
+        Message {
             fid: self.fid.unwrap(),
             tid: self.tid.unwrap(),
             hid: self.hid.unwrap(),

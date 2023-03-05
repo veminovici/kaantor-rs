@@ -1,13 +1,12 @@
 use futures::future::join_all;
 
-use crate::protocol::ProtocolMsg;
+use crate::protocol::Message as PMsg;
 use crate::proxy::Proxy;
 use crate::ActorId;
 
 use super::GraphMsg;
 
-type PMsg<P> = ProtocolMsg<P>;
-type GMsg<P> = GraphMsg<ProtocolMsg<P>>;
+type GMsg<P> = GraphMsg<PMsg<P>>;
 
 /// A collection of `Proxy` instances which
 /// can handle protocol message with a given `P` payload.

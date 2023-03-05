@@ -9,17 +9,12 @@ pub mod protocol;
 mod proxy;
 
 pub use aid::*;
-//pub use graph::*;
 pub use node::{Node, Proxies};
-//pub use protocol::*;
-//pub use proxy::*;
 
 use actix::{dev::ToEnvelope, prelude::*};
-use graph::GraphMsg;
-use protocol::ProtocolMsg;
+use protocol::Message as PMsg;
 
-type PMsg<P> = ProtocolMsg<P>;
-type GMsg<P> = GraphMsg<ProtocolMsg<P>>;
+type GMsg<P> = graph::GraphMsg<PMsg<P>>;
 
 /// Add a bi-directional connection between two ndoes.
 pub async fn add_edge<A, P>(a: &mut Node<A, P>, b: &mut Node<A, P>)

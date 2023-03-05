@@ -1,10 +1,12 @@
 //! Implementation of the builder pattern for the `Node' structure.
 
-use crate::{graph::GraphMsg, protocol::ProtocolMsg, ActorId};
+use crate::{graph::GraphMsg, protocol::Message as PMsg, ActorId};
 use actix::{dev::ToEnvelope, prelude::*};
 use std::marker::PhantomData;
 
 use super::Node;
+
+type GMsg<P> = GraphMsg<PMsg<P>>;
 
 mod states {
     pub struct WithActorId {}
@@ -72,10 +74,10 @@ where
     pub fn build<P>(self) -> Node<A, P>
     where
         P: Send + 'static,
-        A: Handler<ProtocolMsg<P>>,
-        A::Context: ToEnvelope<A, ProtocolMsg<P>>,
-        A: Handler<GraphMsg<ProtocolMsg<P>>>,
-        A::Context: ToEnvelope<A, GraphMsg<ProtocolMsg<P>>>,
+        A: Handler<PMsg<P>>,
+        A::Context: ToEnvelope<A, PMsg<P>>,
+        A: Handler<GMsg<P>>,
+        A::Context: ToEnvelope<A, GMsg<P>>,
     {
         Node::new(self.aid, self.addr.unwrap())
     }
