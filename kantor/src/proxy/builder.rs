@@ -7,8 +7,9 @@ mod states {
     pub struct Ready {}
 }
 
+use crate::ActorId;
+
 use super::Proxy;
-use crate::message::ActorId;
 
 pub struct Builder<M, S = states::WithActorId>
 where

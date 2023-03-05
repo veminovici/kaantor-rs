@@ -2,8 +2,9 @@ mod cfgmsg;
 mod proxies;
 
 use crate::{
-    message::{ActorId, Message as Msg},
+    message::Message as Msg,
     proxy::{builder::Builder, Proxy},
+    ActorId,
 };
 use actix::{dev::ToEnvelope, prelude::*};
 pub use cfgmsg::*;

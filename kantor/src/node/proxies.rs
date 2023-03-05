@@ -1,7 +1,8 @@
 use futures::future::join_all;
 
-use crate::message::{ActorId, Message as Msg};
+use crate::message::Message as Msg;
 use crate::proxy::Proxy;
+use crate::ActorId;
 
 use super::CfgMessage;
 

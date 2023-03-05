@@ -1,5 +1,6 @@
-use super::ActorId;
 use std::fmt::Display;
+
+use crate::ActorId;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum FromId {

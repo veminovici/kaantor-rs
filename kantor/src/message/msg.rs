@@ -44,7 +44,7 @@ impl<P> actix::Message for Message<P> {
 }
 
 pub mod builder {
-    use crate::message::*;
+    use crate::{message::*, ActorId};
     use std::marker::PhantomData;
 
     mod states {

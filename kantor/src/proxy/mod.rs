@@ -2,8 +2,9 @@ pub mod builder;
 mod metrics;
 mod mid;
 
+use crate::ActorId;
+
 use self::{metrics::Metrics, mid::MessageId};
-use crate::message::ActorId;
 use actix::prelude::*;
 use log::{debug, error};
 
