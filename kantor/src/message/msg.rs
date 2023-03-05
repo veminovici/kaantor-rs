@@ -155,8 +155,8 @@ mod utests {
         let bld = bld.with_hid(200.into());
         let msg = bld.build();
 
-        assert_eq!(FromId::FromActor(5.into()), msg.fid);
-        assert_eq!(ToId::ToActor(10.into()), msg.tid);
+        assert_eq!(FromId::from(5), msg.fid);
+        assert_eq!(ToId::from(10), msg.tid);
         assert_eq!(HopId::from(200), msg.hid);
         assert_eq!(5000, msg.payload);
 
@@ -164,8 +164,8 @@ mod utests {
         let bld = bld.with_hid(300.into());
         let msg = bld.build();
 
-        assert_eq!(FromId::FromActor(5.into()), msg.fid);
-        assert_eq!(ToId::ToActor(10.into()), msg.tid);
+        assert_eq!(FromId::from(5), msg.fid);
+        assert_eq!(ToId::from(10), msg.tid);
         assert_eq!(HopId::from(300), msg.hid);
         assert_eq!(5000, msg.payload);
     }
