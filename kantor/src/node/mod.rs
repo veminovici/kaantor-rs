@@ -10,7 +10,7 @@ pub use proxies::*;
 use crate::{
     graph::GraphMsg,
     protocol::{states, Builder as ProBuilder, ProtocolMsg},
-    proxy::{Proxy, ProxyBuilder as PxyBuilder},
+    proxy::{Builder as PxyBuilder, Proxy},
     ActorId,
 };
 use actix::{dev::ToEnvelope, prelude::*};

@@ -1,5 +1,5 @@
 use actix::prelude::*;
-use kantor::{graph::GraphMsg, node::builder::NodeBuilder, protocol::ProtocolMsg, *};
+use kantor::{graph::GraphMsg, node::builder::Builder as NBuilder, protocol::ProtocolMsg, *};
 
 #[derive(Debug, Message, Clone, Copy)]
 #[rtype(result = "()")]
@@ -31,7 +31,7 @@ impl MyActor {
         let actor = MyActor::new(aid);
         let addr = MyActor::start(actor);
 
-        NodeBuilder::from_aid(aid).with_addr(addr).build()
+        NBuilder::from_aid(aid).with_addr(addr).build()
     }
 }
 
