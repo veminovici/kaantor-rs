@@ -2,10 +2,11 @@
 //! for the `Node`, the key actor for the distributed systems.
 
 mod builder;
+mod player;
 mod proxies;
 
 pub use builder::*;
-use log::debug;
+pub use player::*;
 pub use proxies::*;
 
 use crate::{
@@ -15,6 +16,7 @@ use crate::{
     ActorId,
 };
 use actix::{dev::ToEnvelope, prelude::*};
+use log::debug;
 
 type GMsg<P> = GraphMsg<PMsg<P>>;
 
