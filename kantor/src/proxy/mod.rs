@@ -3,24 +3,26 @@ mod metrics;
 mod mid;
 
 use self::{metrics::Metrics, mid::MessageId};
-use crate::message::{ActorId, Message as Msg};
+use crate::message::ActorId;
 use actix::prelude::*;
 use log::{debug, error};
 
 #[derive(Debug)]
-pub struct Proxy<P>
+pub struct Proxy<M>
 where
-    P: Send,
+    M: Message + Send,
+    M::Result: Send,
 {
     aid: ActorId,
     mid: MessageId,
     metrics: Metrics,
-    recipient: Recipient<Msg<P>>,
+    recipient: Recipient<M>,
 }
 
-impl<P> Proxy<P>
+impl<M> Proxy<M>
 where
-    P: Send,
+    M: Message + Send,
+    M::Result: Send,
 {
     #[inline]
     fn incrememt_mid(&mut self) -> MessageId {
@@ -28,19 +30,11 @@ where
     }
 
     #[inline]
-    fn debug_op(&self, op: &str, mid: &MessageId, msg: &Msg<P>) {
-        debug!(
-            "{}'ng {} mh=[{}-->{}] ft=[{}>>>{}]",
-            op,
-            mid,
-            msg.hid(),
-            &self.aid,
-            msg.fid(),
-            msg.tid()
-        )
+    fn debug_op(&self, op: &str, mid: &MessageId, sid: &ActorId) {
+        debug!("{}'ng {} {}-->{}", op, mid, sid, &self.aid)
     }
 
-    fn new(aid: ActorId, recipient: Recipient<Msg<P>>) -> Self {
+    fn new(aid: ActorId, recipient: Recipient<M>) -> Self {
         Self {
             aid,
             mid: Default::default(),
@@ -57,9 +51,9 @@ where
         &self.aid
     }
 
-    pub async fn send(&mut self, msg: Msg<P>) -> Result<<Msg<P> as Message>::Result, MailboxError> {
+    pub async fn send(&mut self, sid: &ActorId, msg: M) -> Result<M::Result, MailboxError> {
         let mid = self.incrememt_mid();
-        self.debug_op("send", &mid, &msg);
+        self.debug_op("send", &mid, sid);
 
         match self.recipient.send(msg).await {
             Ok(x) => {
@@ -74,9 +68,9 @@ where
         }
     }
 
-    pub fn try_send(&mut self, msg: Msg<P>) -> Result<(), SendError<Msg<P>>> {
+    pub fn try_send(&mut self, sid: &ActorId, msg: M) -> Result<(), SendError<M>> {
         let mid = self.incrememt_mid();
-        self.debug_op("try_send", &mid, &msg);
+        self.debug_op("try_send", &mid, sid);
 
         match self.recipient.try_send(msg) {
             Ok(x) => {
@@ -91,9 +85,9 @@ where
         }
     }
 
-    pub fn do_send(&mut self, msg: Msg<P>) {
+    pub fn do_send(&mut self, sid: &ActorId, msg: M) {
         let mid = self.incrememt_mid();
-        self.debug_op("do_send", &mid, &msg);
+        self.debug_op("do_send", &mid, sid);
 
         self.recipient.do_send(msg);
         self.metrics.record_success();

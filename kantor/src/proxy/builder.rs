@@ -7,22 +7,23 @@ mod states {
     pub struct Ready {}
 }
 
-use crate::message::{ActorId, Message as Msg};
-
 use super::Proxy;
+use crate::message::ActorId;
 
-pub struct Builder<P, S = states::WithActorId>
+pub struct Builder<M, S = states::WithActorId>
 where
-    P: Send,
+    M: actix::Message + Send,
+    M::Result: Send,
 {
     aid: ActorId,
-    recipient: Option<Recipient<Msg<P>>>,
+    recipient: Option<Recipient<M>>,
     phantom: PhantomData<S>,
 }
 
-impl<P> Builder<P>
+impl<M> Builder<M>
 where
-    P: Send,
+    M: actix::Message + Send,
+    M::Result: Send,
 {
     pub fn from_aid(aid: ActorId) -> Self {
         Self {
@@ -32,8 +33,8 @@ where
         }
     }
 
-    pub fn with_recipient(self, recipient: Recipient<Msg<P>>) -> Builder<P, states::Ready> {
-        Builder::<P, states::Ready> {
+    pub fn with_recipient(self, recipient: Recipient<M>) -> Builder<M, states::Ready> {
+        Builder::<M, states::Ready> {
             aid: self.aid,
             recipient: Some(recipient),
             phantom: PhantomData,
@@ -41,11 +42,12 @@ where
     }
 }
 
-impl<P> Builder<P, states::Ready>
+impl<M> Builder<M, states::Ready>
 where
-    P: Send,
+    M: actix::Message + Send,
+    M::Result: Send,
 {
-    pub fn build(self) -> Proxy<P> {
+    pub fn build(self) -> Proxy<M> {
         Proxy::new(self.aid, self.recipient.unwrap())
     }
 }

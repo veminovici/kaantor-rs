@@ -4,9 +4,10 @@ use crate::proxy::Proxy;
 
 #[derive(Debug, Message)]
 #[rtype(result = "()")]
-pub enum CfgMessage<P>
+pub enum CfgMessage<M>
 where
-    P: Send,
+    M: Message + Send,
+    M::Result: Send,
 {
-    AddProxy(Proxy<P>),
+    AddProxy(Proxy<M>),
 }

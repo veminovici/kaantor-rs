@@ -9,7 +9,7 @@ pub struct Proxies<P>
 where
     P: Send,
 {
-    proxies: Vec<Proxy<P>>,
+    proxies: Vec<Proxy<Msg<P>>>,
 }
 
 impl<P> Default for Proxies<P>
@@ -17,7 +17,9 @@ where
     P: Send,
 {
     fn default() -> Self {
-        Self::new()
+        Self {
+            proxies: Default::default(),
+        }
     }
 }
 
@@ -32,17 +34,17 @@ where
     }
 
     #[inline]
-    pub fn add_proxy(&mut self, proxy: Proxy<P>) {
+    pub fn add_proxy(&mut self, proxy: Proxy<Msg<P>>) {
         self.proxies.push(proxy)
     }
 
-    pub fn handle_msg(&mut self, msg: CfgMessage<P>) {
+    pub fn handle_msg(&mut self, msg: CfgMessage<Msg<P>>) {
         match msg {
             CfgMessage::AddProxy(pxy) => self.add_proxy(pxy),
         }
     }
 
-    pub async fn send_all_except(&mut self, msg: Msg<P>, except: &[ActorId])
+    pub async fn send_all_except(&mut self, sid: &ActorId, msg: Msg<P>, except: &[ActorId])
     where
         P: Clone,
     {
@@ -50,11 +52,11 @@ where
             .proxies
             .iter_mut()
             .filter(|pxy| !except.contains(pxy.aid()))
-            .map(|pxy| pxy.send(msg.clone()));
+            .map(|pxy| pxy.send(sid, msg.clone()));
         let _ = join_all(futures).await;
     }
 
-    pub fn try_send_all_except(&mut self, msg: Msg<P>, except: &[ActorId])
+    pub fn try_send_all_except(&mut self, sid: &ActorId, msg: Msg<P>, except: &[ActorId])
     where
         P: Clone,
     {
@@ -62,11 +64,11 @@ where
             .proxies
             .iter_mut()
             .filter(|pxy| !except.contains(pxy.aid()))
-            .map(|pxy| pxy.try_send(msg.clone()))
+            .map(|pxy| pxy.try_send(sid, msg.clone()))
             .collect();
     }
 
-    pub fn do_send_all_except(&mut self, msg: Msg<P>, except: &[ActorId])
+    pub fn do_send_all_except(&mut self, sid: &ActorId, msg: Msg<P>, except: &[ActorId])
     where
         P: Clone,
     {
@@ -74,7 +76,7 @@ where
             .proxies
             .iter_mut()
             .filter(|pxy| !except.contains(pxy.aid()))
-            .map(|pxy| pxy.do_send(msg.clone()))
+            .map(|pxy| pxy.do_send(sid, msg.clone()))
             .collect();
     }
 }
