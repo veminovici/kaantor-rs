@@ -1,6 +1,6 @@
 //! Implementation of the builder pattern for the `Node' structure.
 
-use crate::{graph::CfgMessage, protocol::ProtocolMsg, ActorId};
+use crate::{graph::GraphMsg, protocol::ProtocolMsg, ActorId};
 use actix::{dev::ToEnvelope, prelude::*};
 use std::marker::PhantomData;
 
@@ -74,8 +74,8 @@ where
         P: Send + 'static,
         A: Handler<ProtocolMsg<P>>,
         A::Context: ToEnvelope<A, ProtocolMsg<P>>,
-        A: Handler<CfgMessage<ProtocolMsg<P>>>,
-        A::Context: ToEnvelope<A, CfgMessage<ProtocolMsg<P>>>,
+        A: Handler<GraphMsg<ProtocolMsg<P>>>,
+        A::Context: ToEnvelope<A, GraphMsg<ProtocolMsg<P>>>,
     {
         Node::new(self.aid, self.addr.unwrap())
     }

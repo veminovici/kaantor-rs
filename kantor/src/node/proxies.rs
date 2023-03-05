@@ -4,10 +4,10 @@ use crate::protocol::ProtocolMsg;
 use crate::proxy::Proxy;
 use crate::ActorId;
 
-use super::CfgMessage;
+use super::GraphMsg;
 
-type ProMsg<P> = ProtocolMsg<P>;
-type CfgMsg<P> = CfgMessage<ProtocolMsg<P>>;
+type PMsg<P> = ProtocolMsg<P>;
+type GMsg<P> = GraphMsg<ProtocolMsg<P>>;
 
 /// A collection of `Proxy` instances which
 /// can handle protocol message with a given `P` payload.
@@ -15,7 +15,7 @@ pub struct Proxies<P>
 where
     P: Send,
 {
-    proxies: Vec<Proxy<ProMsg<P>>>,
+    proxies: Vec<Proxy<PMsg<P>>>,
 }
 
 impl<P> Default for Proxies<P>
@@ -42,21 +42,21 @@ where
 
     /// Adds a new proxy to the internal collection.
     #[inline]
-    pub fn add_proxy(&mut self, proxy: Proxy<ProMsg<P>>) {
+    pub fn add_proxy(&mut self, proxy: Proxy<PMsg<P>>) {
         self.proxies.push(proxy)
     }
 
     /// Implements capabilities to handle a configuration message
     /// received by the actor.
     #[inline]
-    pub fn handle_msg(&mut self, msg: CfgMsg<P>) {
+    pub fn handle_msg(&mut self, msg: GMsg<P>) {
         match msg {
-            CfgMessage::AddProxy(pxy) => self.add_proxy(pxy),
+            GraphMsg::AddProxy(pxy) => self.add_proxy(pxy),
         }
     }
 
     /// Sends a message to all neighbours except the ones from the list.
-    pub async fn send_all_except(&mut self, sid: &ActorId, msg: ProMsg<P>, except: &[ActorId])
+    pub async fn send_all_except(&mut self, sid: &ActorId, msg: PMsg<P>, except: &[ActorId])
     where
         P: Clone,
     {
@@ -69,7 +69,7 @@ where
     }
 
     /// Tries to send a message to all neighbours except the ones from the list.
-    pub fn try_send_all_except(&mut self, sid: &ActorId, msg: ProMsg<P>, except: &[ActorId])
+    pub fn try_send_all_except(&mut self, sid: &ActorId, msg: PMsg<P>, except: &[ActorId])
     where
         P: Clone,
     {
@@ -82,7 +82,7 @@ where
     }
 
     /// Does send a message to all neighbours except the ones from the list.
-    pub fn do_send_all_except(&mut self, sid: &ActorId, msg: ProMsg<P>, except: &[ActorId])
+    pub fn do_send_all_except(&mut self, sid: &ActorId, msg: PMsg<P>, except: &[ActorId])
     where
         P: Clone,
     {
