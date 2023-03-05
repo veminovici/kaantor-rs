@@ -4,8 +4,8 @@
 
 mod aid;
 mod graph;
-mod node;
-mod protocol;
+pub mod node;
+pub mod protocol;
 mod proxy;
 
 pub use aid::*;
