@@ -5,7 +5,7 @@ use kantor::{graph::GraphMsg, protocol::ProtocolMsg, *, node::builder::NodeBuild
 #[rtype(result = "()")]
 enum MyMessage {
     Position(usize),
-    Forward(ActorId, usize),
+    //Forward(ActorId, usize),
 }
 
 struct MyActor {
@@ -41,7 +41,7 @@ impl Handler<GraphMsg<ProtocolMsg<MyMessage>>> for MyActor {
     fn handle(
         &mut self,
         msg: GraphMsg<ProtocolMsg<MyMessage>>,
-        ctx: &mut Self::Context,
+        _ctx: &mut Self::Context,
     ) -> Self::Result {
         println!("Actor {:?} received a graph {:?} message", self.aid, msg);
         self.proxies.handle_msg(msg);
