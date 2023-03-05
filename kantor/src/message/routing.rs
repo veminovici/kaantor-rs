@@ -1,8 +1,17 @@
 use super::ActorId;
+use std::fmt::Display;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum FromId {
     FromActor(ActorId),
+}
+
+impl Display for FromId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            FromId::FromActor(aid) => write!(f, "{aid}"),
+        }
+    }
 }
 
 impl From<ActorId> for FromId {
@@ -18,11 +27,21 @@ impl From<usize> for FromId {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum ToId {
     ToActor(ActorId),
     ToAllActors,
     ToAllActorsExcept(Vec<ActorId>),
+}
+
+impl Display for ToId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ToId::ToActor(aid) => write!(f, "{aid}"),
+            ToId::ToAllActors => write!(f, "all"),
+            ToId::ToAllActorsExcept(_) => write!(f, "all--"),
+        }
+    }
 }
 
 impl From<ActorId> for ToId {
@@ -38,8 +57,14 @@ impl From<usize> for ToId {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct HopId(ActorId);
+
+impl Display for HopId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 impl From<ActorId> for HopId {
     fn from(value: ActorId) -> Self {

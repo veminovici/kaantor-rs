@@ -2,6 +2,7 @@ use std::fmt::Debug;
 
 use super::{FromId, HopId, ToId};
 
+#[derive(Clone)]
 pub struct Message<P> {
     fid: FromId,
     tid: ToId,
