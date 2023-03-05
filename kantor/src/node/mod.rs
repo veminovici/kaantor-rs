@@ -6,8 +6,11 @@ mod proxies;
 
 use crate::{
     graph::GraphMsg,
-    protocol::ProtocolMsg,
-    proxy::{builder::Builder, Proxy},
+    protocol::{
+        builder::{states::WithFromId, Builder as ProBuilder},
+        ProtocolMsg,
+    },
+    proxy::{builder::Builder as PxyBuilder, Proxy},
     ActorId,
 };
 use actix::{dev::ToEnvelope, prelude::*};
@@ -47,16 +50,26 @@ where
         Self { aid, addr, cfg }
     }
 
+    /// Gets the acotr identifier.
+    pub fn aid(&self) -> &ActorId {
+        &self.aid
+    }
+
+    /// Returns a protocol builder.
+    pub fn protocol_builder(&self) -> ProBuilder<P, WithFromId> {
+        ProBuilder::from_aid(self.aid)
+    }
+
     fn get_cfg_proxy(aid: ActorId, addr: Addr<A>) -> Proxy<GMsg<P>> {
         let recipient = addr.recipient::<GMsg<P>>();
-        Builder::from_aid(aid).with_recipient(recipient).build()
+        PxyBuilder::from_aid(aid).with_recipient(recipient).build()
     }
 
     /// Creates a proxy for protocol messages. This proxy will be stored
     /// the the neighbour nodes, so they can communicate with the current node.
     pub fn as_proxy(&self) -> Proxy<PMsg<P>> {
         let recipient = self.addr.clone().recipient::<PMsg<P>>();
-        Builder::from_aid(self.aid)
+        PxyBuilder::from_aid(self.aid)
             .with_recipient(recipient)
             .build()
     }

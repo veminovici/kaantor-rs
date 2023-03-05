@@ -3,18 +3,21 @@
 //! A crate for distributed systems
 
 mod aid;
-mod graph;
+pub mod graph;
 pub mod node;
 pub mod protocol;
 mod proxy;
 
 pub use aid::*;
-pub use graph::*;
-pub use node::*;
-pub use protocol::*;
-pub use proxy::*;
+//pub use graph::*;
+//pub use node::*;
+//pub use protocol::*;
+//pub use proxy::*;
 
 use actix::{dev::ToEnvelope, prelude::*};
+use graph::GraphMsg;
+use node::Node;
+use protocol::ProtocolMsg;
 
 type PMsg<P> = ProtocolMsg<P>;
 type GMsg<P> = GraphMsg<ProtocolMsg<P>>;

@@ -3,7 +3,7 @@
 use crate::{protocol::*, ActorId};
 use std::marker::PhantomData;
 
-mod states {
+pub mod states {
     pub struct New {}
     pub struct WithFromId {}
     pub struct WithToId {}
