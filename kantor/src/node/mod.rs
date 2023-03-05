@@ -2,16 +2,15 @@
 //! for the `Node`, the key actor for the distributed systems.
 
 pub mod builder;
-mod cfgmsg;
 mod proxies;
 
 use crate::{
+    graph::CfgMessage,
     protocol::ProtocolMsg,
     proxy::{builder::Builder, Proxy},
     ActorId,
 };
 use actix::{dev::ToEnvelope, prelude::*};
-pub use cfgmsg::*;
 pub use proxies::*;
 
 /// The actor node for the distributed systems.

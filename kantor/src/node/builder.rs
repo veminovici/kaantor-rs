@@ -1,10 +1,10 @@
 //! Implementation of the builder pattern for the `Node' structure.
 
-use crate::{protocol::ProtocolMsg, ActorId};
+use crate::{graph::CfgMessage, protocol::ProtocolMsg, ActorId};
 use actix::{dev::ToEnvelope, prelude::*};
 use std::marker::PhantomData;
 
-use super::{CfgMessage, Node};
+use super::Node;
 
 mod states {
     pub struct WithActorId {}
