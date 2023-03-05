@@ -1,8 +1,10 @@
 //! A implementation for a proxy for a remote node.
 
-pub mod builder;
+mod builder;
 mod metrics;
 mod mid;
+
+pub use builder::*;
 
 use crate::ActorId;
 

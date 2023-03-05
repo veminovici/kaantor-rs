@@ -1,11 +1,13 @@
 //! Main functionality for the protocol messages.
 
-pub mod builder;
+mod builder;
 mod routing;
 
-use actix::prelude::*;
+pub use builder::*;
 pub use routing::*;
-pub use std::fmt::Debug;
+
+use actix::prelude::*;
+use std::fmt::Debug;
 
 /// A protocol message
 #[derive(Clone)]

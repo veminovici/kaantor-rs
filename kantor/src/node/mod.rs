@@ -4,17 +4,16 @@
 pub mod builder;
 mod proxies;
 
+//pub use builder::*;
+pub use proxies::*;
+
 use crate::{
     graph::GraphMsg,
-    protocol::{
-        builder::{states::WithFromId, Builder as ProBuilder},
-        ProtocolMsg,
-    },
-    proxy::{builder::Builder as PxyBuilder, Proxy},
+    protocol::{states, ProtocolBuilder as ProBuilder, ProtocolMsg},
+    proxy::{Proxy, ProxyBuilder as PxyBuilder},
     ActorId,
 };
 use actix::{dev::ToEnvelope, prelude::*};
-pub use proxies::*;
 
 type PMsg<P> = ProtocolMsg<P>;
 type GMsg<P> = GraphMsg<ProtocolMsg<P>>;
@@ -56,7 +55,7 @@ where
     }
 
     /// Returns a protocol builder.
-    pub fn protocol_builder(&self) -> ProBuilder<P, WithFromId> {
+    pub fn protocol_builder(&self) -> ProBuilder<P, states::WithFromId> {
         ProBuilder::from_aid(self.aid)
     }
 

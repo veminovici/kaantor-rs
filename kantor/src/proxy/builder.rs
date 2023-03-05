@@ -14,7 +14,7 @@ use crate::ActorId;
 use super::Proxy;
 
 /// The builder for the `Proxy`
-pub struct Builder<M, S = states::WithActorId>
+pub struct ProxyBuilder<M, S = states::WithActorId>
 where
     M: actix::Message + Send,
     M::Result: Send,
@@ -24,7 +24,7 @@ where
     phantom: PhantomData<S>,
 }
 
-impl<M> From<ActorId> for Builder<M>
+impl<M> From<ActorId> for ProxyBuilder<M>
 where
     M: actix::Message + Send,
     M::Result: Send,
@@ -34,7 +34,7 @@ where
     }
 }
 
-impl<M> Builder<M>
+impl<M> ProxyBuilder<M>
 where
     M: actix::Message + Send,
     M::Result: Send,
@@ -49,8 +49,8 @@ where
     }
 
     /// Continues the building chain by setting the recipient.
-    pub fn with_recipient(self, recipient: Recipient<M>) -> Builder<M, states::Ready> {
-        Builder::<M, states::Ready> {
+    pub fn with_recipient(self, recipient: Recipient<M>) -> ProxyBuilder<M, states::Ready> {
+        ProxyBuilder::<M, states::Ready> {
             aid: self.aid,
             recipient: Some(recipient),
             phantom: PhantomData,
@@ -58,7 +58,7 @@ where
     }
 }
 
-impl<M> Builder<M, states::Ready>
+impl<M> ProxyBuilder<M, states::Ready>
 where
     M: actix::Message + Send,
     M::Result: Send,

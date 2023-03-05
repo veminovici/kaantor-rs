@@ -10,13 +10,12 @@ mod proxy;
 
 pub use aid::*;
 //pub use graph::*;
-//pub use node::*;
+pub use node::{Node, Proxies};
 //pub use protocol::*;
 //pub use proxy::*;
 
 use actix::{dev::ToEnvelope, prelude::*};
 use graph::GraphMsg;
-use node::Node;
 use protocol::ProtocolMsg;
 
 type PMsg<P> = ProtocolMsg<P>;

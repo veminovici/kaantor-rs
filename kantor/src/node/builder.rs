@@ -15,7 +15,7 @@ mod states {
 /// The builder can initialized either from an `ActorId`.
 /// The next step is to set the address, while the final
 /// step is to build the `Node` instance by calling `build` function.
-pub struct Builder<A, S = states::WithActorId>
+pub struct NodeBuilder<A, S = states::WithActorId>
 where
     A: Actor,
 {
@@ -24,7 +24,7 @@ where
     phantom: PhantomData<S>,
 }
 
-impl<A> From<ActorId> for Builder<A>
+impl<A> From<ActorId> for NodeBuilder<A>
 where
     A: Actor,
 {
@@ -33,7 +33,7 @@ where
     }
 }
 
-impl<A> Builder<A>
+impl<A> NodeBuilder<A>
 where
     A: Actor,
 {
@@ -48,15 +48,15 @@ where
     }
 }
 
-impl<A> Builder<A>
+impl<A> NodeBuilder<A>
 where
     A: Actor,
 {
     /// Continues the building chain by setting the address for
     /// the new `Node` instance. Once this is calles, you can
     /// build the new `Node` instance.
-    pub fn with_addr(self, addr: Addr<A>) -> Builder<A, states::Ready> {
-        Builder::<A, states::Ready> {
+    pub fn with_addr(self, addr: Addr<A>) -> NodeBuilder<A, states::Ready> {
+        NodeBuilder::<A, states::Ready> {
             aid: self.aid,
             addr: Some(addr),
             phantom: PhantomData,
@@ -64,7 +64,7 @@ where
     }
 }
 
-impl<A> Builder<A, states::Ready>
+impl<A> NodeBuilder<A, states::Ready>
 where
     A: Actor,
 {
