@@ -9,6 +9,7 @@ pub mod protocol;
 mod proxy;
 
 pub use aid::*;
+use log::debug;
 pub use node::{Node, Proxies};
 
 use actix::{dev::ToEnvelope, prelude::*};
@@ -26,6 +27,8 @@ where
     A: Handler<GMsg<P>>,
     A::Context: ToEnvelope<A, GMsg<P>>,
 {
+    debug!("add edge [{}-{}]", a.aid(), b.aid());
+
     let pxy_a = a.as_proxy();
     let pxy_b = b.as_proxy();
 

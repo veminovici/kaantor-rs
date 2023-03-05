@@ -19,7 +19,7 @@ where
     M: Message + Send,
     M::Result: Send,
 {
-    aid: ActorId,
+    pub(crate) aid: ActorId,
     mid: MessageId,
     metrics: Metrics,
     recipient: Recipient<M>,
@@ -37,7 +37,7 @@ where
 
     #[inline]
     fn debug_op(&self, op: &str, mid: &MessageId, sid: &ActorId) {
-        debug!("{}'ng {} {}-->{}", op, mid, sid, &self.aid)
+        debug!("{}'ng [{}-->{}] [{}]", op, sid, &self.aid, mid)
     }
 
     fn new(aid: ActorId, recipient: Recipient<M>) -> Self {
@@ -70,7 +70,7 @@ where
                 Ok(x)
             }
             Err(e) => {
-                error!("send'fd mid={:?}", mid);
+                error!("send'fd [{}]", mid);
                 self.metrics.record_failure();
                 Err(e)
             }
@@ -88,7 +88,7 @@ where
                 Ok(x)
             }
             Err(e) => {
-                error!("send'fd mid={:?}", mid);
+                error!("send'fd [{}]", mid);
                 self.metrics.record_failure();
                 Err(e)
             }

@@ -1,5 +1,6 @@
 use actix::prelude::*;
 use kantor::{node::Builder as NBuilder, protocol::Message as ProMsg, *};
+use log::debug;
 
 #[derive(Debug, Message, Clone, Copy)]
 #[rtype(result = "()")]
@@ -42,7 +43,7 @@ impl Handler<GMsg> for MyActor {
     type Result = ();
 
     fn handle(&mut self, msg: GMsg, _ctx: &mut Self::Context) -> Self::Result {
-        println!("Actor {:?} received a graph {:?} message", self.aid, msg);
+        //println!("Actor {:?} received a graph {:?} message", self.aid, msg);
         self.proxies.handle_msg(msg);
     }
 }
@@ -57,6 +58,7 @@ impl Handler<PMsg> for MyActor {
 
 fn main() {
     env_logger::init();
+    debug!("Starting the example FLOODING");
 
     let sys = System::new();
     sys.block_on(async {
@@ -77,5 +79,6 @@ fn main() {
         let _ = p1.send(msg).await;
     });
 
-    println!("Finished the test")
+    println!("Finished the test");
+    debug!("Completed the example FLOODING");
 }
