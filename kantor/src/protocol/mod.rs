@@ -3,19 +3,20 @@
 pub mod builder;
 mod routing;
 
+use actix::prelude::*;
 pub use routing::*;
 pub use std::fmt::Debug;
 
 /// A protocol message
 #[derive(Clone)]
-pub struct Message<P> {
+pub struct ProtocolMsg<P> {
     pub(crate) fid: FromId,
     pub(crate) tid: ToId,
     pub(crate) hid: HopId,
     pub(crate) payload: P,
 }
 
-impl<P> Debug for Message<P> {
+impl<P> Debug for ProtocolMsg<P> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Message")
             .field("fid", &self.fid)
@@ -26,7 +27,7 @@ impl<P> Debug for Message<P> {
     }
 }
 
-impl<P> Message<P> {
+impl<P> ProtocolMsg<P> {
     /// Get the `FromId`
     pub fn fid(&self) -> &FromId {
         &self.fid
@@ -48,7 +49,6 @@ impl<P> Message<P> {
     }
 }
 
-impl<P> actix::Message for Message<P> {
+impl<P> Message for ProtocolMsg<P> {
     type Result = ();
 }
-

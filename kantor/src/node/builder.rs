@@ -1,6 +1,6 @@
 //! Implementation of the builder pattern for the `Node' structure.
 
-use crate::{message::Message as Msg, ActorId};
+use crate::{protocol::ProtocolMsg, ActorId};
 use actix::{dev::ToEnvelope, prelude::*};
 use std::marker::PhantomData;
 
@@ -35,7 +35,7 @@ where
 
 impl<A> Builder<A>
 where
-    A: Actor
+    A: Actor,
 {
     /// Initializes the building chain by creating a new
     /// instance of `Builder` from an `ActorId`.
@@ -72,10 +72,10 @@ where
     pub fn build<P>(self) -> Node<A, P>
     where
         P: Send + 'static,
-        A: Handler<Msg<P>>,
-        A::Context: ToEnvelope<A, Msg<P>>,
-        A: Handler<CfgMessage<Msg<P>>>,
-        A::Context: ToEnvelope<A, CfgMessage<Msg<P>>>,
+        A: Handler<ProtocolMsg<P>>,
+        A::Context: ToEnvelope<A, ProtocolMsg<P>>,
+        A: Handler<CfgMessage<ProtocolMsg<P>>>,
+        A::Context: ToEnvelope<A, CfgMessage<ProtocolMsg<P>>>,
     {
         Node::new(self.aid, self.addr.unwrap())
     }

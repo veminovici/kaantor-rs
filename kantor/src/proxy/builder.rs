@@ -1,5 +1,5 @@
 //! The builder pattern implementation for the `Proxy`.
-//! 
+//!
 use std::marker::PhantomData;
 
 use actix::Recipient;
