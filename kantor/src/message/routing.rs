@@ -2,8 +2,10 @@ use std::fmt::Display;
 
 use crate::ActorId;
 
+/// Represents origin of the message.
 #[derive(Debug, PartialEq, Clone)]
 pub enum FromId {
+    /// The message is originating from an actor
     FromActor(ActorId),
 }
 
@@ -28,10 +30,14 @@ impl From<usize> for FromId {
     }
 }
 
+/// Represents the destination of the message.
 #[derive(Debug, PartialEq, Clone)]
 pub enum ToId {
+    /// The destination is a specific actor.
     ToActor(ActorId),
+    /// The destination are all actors.
     ToAllActors,
+    /// The destination are all actors excepts a list of them.
     ToAllActorsExcept(Vec<ActorId>),
 }
 
@@ -58,6 +64,7 @@ impl From<usize> for ToId {
     }
 }
 
+/// Reprsents the sender of the message for this current leg.
 #[derive(Debug, PartialEq, Clone)]
 pub struct HopId(ActorId);
 

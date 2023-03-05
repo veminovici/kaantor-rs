@@ -6,6 +6,8 @@ use crate::ActorId;
 
 use super::CfgMessage;
 
+/// A collection of `Proxy` instances which
+/// can handle protocol message with a given `P` payload.
 pub struct Proxies<P>
 where
     P: Send,
@@ -28,23 +30,29 @@ impl<P> Proxies<P>
 where
     P: Send,
 {
+    /// Creates a new instance of the collection.
     pub fn new() -> Self {
         Self {
             proxies: Default::default(),
         }
     }
 
+    /// Adds a new proxy to the internal collection.
     #[inline]
     pub fn add_proxy(&mut self, proxy: Proxy<Msg<P>>) {
         self.proxies.push(proxy)
     }
 
+    /// Implements capabilities to handle a configuration message
+    /// received by the actor.
+    #[inline]
     pub fn handle_msg(&mut self, msg: CfgMessage<Msg<P>>) {
         match msg {
             CfgMessage::AddProxy(pxy) => self.add_proxy(pxy),
         }
     }
 
+    /// Sends a message to all neighbours except the ones from the list.
     pub async fn send_all_except(&mut self, sid: &ActorId, msg: Msg<P>, except: &[ActorId])
     where
         P: Clone,
@@ -57,6 +65,7 @@ where
         let _ = join_all(futures).await;
     }
 
+    /// Tries to send a message to all neighbours except the ones from the list.
     pub fn try_send_all_except(&mut self, sid: &ActorId, msg: Msg<P>, except: &[ActorId])
     where
         P: Clone,
@@ -69,6 +78,7 @@ where
             .collect();
     }
 
+    /// Does send a message to all neighbours except the ones from the list.
     pub fn do_send_all_except(&mut self, sid: &ActorId, msg: Msg<P>, except: &[ActorId])
     where
         P: Clone,

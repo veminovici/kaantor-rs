@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+/// The identifier for an actor
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct ActorId(usize);
 

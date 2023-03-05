@@ -1,3 +1,5 @@
+//! Implements the builder patter for the procotol messages.
+//! 
 use crate::{message::*, ActorId};
 use std::marker::PhantomData;
 
@@ -9,6 +11,7 @@ mod states {
     pub struct Ready {}
 }
 
+/// A builder for the protocol messages.
 pub struct Builder<P, S = states::New> {
     fid: Option<FromId>,
     tid: Option<ToId>,
@@ -25,7 +28,7 @@ impl<P> Default for Builder<P> {
 
 impl<P> From<ActorId> for Builder<P, states::WithFromId> {
     fn from(aid: ActorId) -> Self {
-        Builder::from_actor(aid)
+        Builder::from_aid(aid)
     }
 }
 
@@ -46,6 +49,8 @@ impl<P> Builder<P, states::New> {
         }
     }
 
+    /// Initializes the building chain by creating a builder from a received
+    /// `Message` instance.
     pub fn from_message(msg: Message<P>) -> Builder<P, states::WithPayload> {
         Builder::<P, states::WithPayload> {
             fid: Some(msg.fid),
@@ -56,7 +61,8 @@ impl<P> Builder<P, states::New> {
         }
     }
 
-    pub fn from_actor(aid: ActorId) -> Builder<P, states::WithFromId> {
+    /// Initializes the building chain by creating a builder from an `ActorId`
+    pub fn from_aid(aid: ActorId) -> Builder<P, states::WithFromId> {
         Builder::<P, states::WithFromId> {
             fid: Some(FromId::FromActor(aid)),
             tid: None,
@@ -68,6 +74,7 @@ impl<P> Builder<P, states::New> {
 }
 
 impl<P> Builder<P, states::WithFromId> {
+    /// Continues the building chain by setting the `ToId` value to an actor.
     pub fn to_actor(self, aid: ActorId) -> Builder<P, states::WithToId> {
         Builder::<P, states::WithToId> {
             fid: self.fid,
@@ -78,6 +85,7 @@ impl<P> Builder<P, states::WithFromId> {
         }
     }
 
+    /// Continues the building chain by setting the `ToId` value to all actors.
     pub fn to_all_actors(self) -> Builder<P, states::WithToId> {
         Builder::<P, states::WithToId> {
             fid: self.fid,
@@ -90,6 +98,7 @@ impl<P> Builder<P, states::WithFromId> {
 }
 
 impl<P> Builder<P, states::WithToId> {
+    /// Continues the building chain by setting the payload.
     pub fn with_payload(self, payload: P) -> Builder<P, states::WithPayload> {
         Builder::<P, states::WithPayload> {
             fid: self.fid,
@@ -102,6 +111,7 @@ impl<P> Builder<P, states::WithToId> {
 }
 
 impl<P> Builder<P, states::WithPayload> {
+    /// Continues the building chain by setting the `HopId` value.
     pub fn with_hid(self, hid: ActorId) -> Builder<P, states::Ready> {
         Builder::<P, states::Ready> {
             fid: self.fid,
@@ -114,6 +124,7 @@ impl<P> Builder<P, states::WithPayload> {
 }
 
 impl<P> Builder<P, states::Ready> {
+    /// Finalizes the chain by building the `Message` instance.
     pub fn build(self) -> Message<P> {
         Message {
             fid: self.fid.unwrap(),
@@ -130,7 +141,7 @@ mod utests {
 
     #[test]
     fn build_() {
-        let bld = Builder::from_actor(5.into());
+        let bld = Builder::from_aid(5.into());
         let bld = bld.to_actor(10.into());
         let bld = bld.with_payload(5000);
         let bld = bld.with_hid(200.into());

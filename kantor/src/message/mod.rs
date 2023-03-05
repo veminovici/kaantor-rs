@@ -1,9 +1,12 @@
+//! Main functionality for the protocol messages.
+
 pub mod builder;
 mod routing;
 
 pub use routing::*;
 pub use std::fmt::Debug;
 
+/// A protocol message
 #[derive(Clone)]
 pub struct Message<P> {
     pub(crate) fid: FromId,
@@ -24,18 +27,22 @@ impl<P> Debug for Message<P> {
 }
 
 impl<P> Message<P> {
+    /// Get the `FromId`
     pub fn fid(&self) -> &FromId {
         &self.fid
     }
 
+    /// Get the `ToId`
     pub fn tid(&self) -> &ToId {
         &self.tid
     }
 
+    /// Get the `HopId`
     pub fn hid(&self) -> &HopId {
         &self.hid
     }
 
+    /// Get the payload.
     pub fn payload(&self) -> &P {
         &self.payload
     }
