@@ -1,4 +1,3 @@
-
 use crate::{message::*, ActorId};
 use std::marker::PhantomData;
 
@@ -24,8 +23,20 @@ impl<P> Default for Builder<P> {
     }
 }
 
+impl<P> From<ActorId> for Builder<P, states::WithFromId> {
+    fn from(aid: ActorId) -> Self {
+        Builder::from_actor(aid)
+    }
+}
+
+impl<P> From<Message<P>> for Builder<P, states::WithPayload> {
+    fn from(msg: Message<P>) -> Self {
+        Builder::<P>::from_message(msg)
+    }
+}
+
 impl<P> Builder<P, states::New> {
-    pub fn new() -> Builder<P> {
+    fn new() -> Builder<P> {
         Self {
             fid: None,
             tid: None,
@@ -45,12 +56,12 @@ impl<P> Builder<P, states::New> {
         }
     }
 
-    pub fn from_actor(self, aid: ActorId) -> Builder<P, states::WithFromId> {
+    pub fn from_actor(aid: ActorId) -> Builder<P, states::WithFromId> {
         Builder::<P, states::WithFromId> {
             fid: Some(FromId::FromActor(aid)),
-            tid: self.tid,
-            payload: self.payload,
-            hid: self.hid,
+            tid: None,
+            payload: None,
+            hid: None,
             phantom: PhantomData,
         }
     }
@@ -110,5 +121,33 @@ impl<P> Builder<P, states::Ready> {
             hid: self.hid.unwrap(),
             payload: self.payload.unwrap(),
         }
+    }
+}
+
+#[cfg(test)]
+mod utests {
+    use super::*;
+
+    #[test]
+    fn build_() {
+        let bld = Builder::from_actor(5.into());
+        let bld = bld.to_actor(10.into());
+        let bld = bld.with_payload(5000);
+        let bld = bld.with_hid(200.into());
+        let msg = bld.build();
+
+        assert_eq!(FromId::from(5), msg.fid);
+        assert_eq!(ToId::from(10), msg.tid);
+        assert_eq!(HopId::from(200), msg.hid);
+        assert_eq!(5000, msg.payload);
+
+        let bld = Builder::from_message(msg);
+        let bld = bld.with_hid(300.into());
+        let msg = bld.build();
+
+        assert_eq!(FromId::from(5), msg.fid);
+        assert_eq!(ToId::from(10), msg.tid);
+        assert_eq!(HopId::from(300), msg.hid);
+        assert_eq!(5000, msg.payload);
     }
 }
