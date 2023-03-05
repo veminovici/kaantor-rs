@@ -1,5 +1,5 @@
 use actix::prelude::*;
-use kantor::{node::builder::Builder as NBuilder, protocol::Message as ProMsg, *};
+use kantor::{node::Builder as NBuilder, protocol::Message as ProMsg, *};
 
 #[derive(Debug, Message, Clone, Copy)]
 #[rtype(result = "()")]
