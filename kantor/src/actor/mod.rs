@@ -74,19 +74,19 @@ where
 
         let res = self.ph.receive(&self.proxies, msg);
         match res {
-            ContinuationHandler::SendToNode(me, msg) => {
+            ContinuationHandler::SendToNode(tid, msg) => {
                 let from = msg.fid();
                 let to = msg.tid();
                 let sid = *msg.sid();
                 let pld = msg.payload();
                 info!(
-                    "SEND | from {} to node | {}->{} | {} | {:?}",
-                    me, from, to, sid, pld
+                    "SEND | from {} to node {} | {}->{} | {} | {:?}",
+                    me, to, from, to, sid, pld
                 );
 
-                self.proxies.do_send_all_except(&me, msg, &[])
+                self.proxies.do_send_to_proxy(&me, &tid, msg)
             }
-            ContinuationHandler::SendToAllNodes(me, msg) => {
+            ContinuationHandler::SendToAllNodes(msg) => {
                 let from = msg.fid();
                 let to = msg.tid();
                 let sid = *msg.sid();
@@ -98,7 +98,7 @@ where
 
                 self.proxies.do_send_all_except(&me, msg, &[])
             }
-            ContinuationHandler::SendToAllNodesExcept(me, msg, except) => {
+            ContinuationHandler::SendToAllNodesExcept(msg, except) => {
                 let from = msg.fid();
                 let to = msg.tid();
                 let sid = *msg.sid();

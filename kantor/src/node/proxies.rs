@@ -39,6 +39,11 @@ where
         }
     }
 
+    /// Returns the list of actor identifiers.
+    pub fn aids(&self) -> impl Iterator<Item = ActorId> + '_ {
+        self.proxies.iter().map(|p| p.aid)
+    }
+
     /// Adds a new proxy to the internal collection.
     #[inline]
     pub fn add_proxy(&mut self, proxy: Proxy<PMsg<P>>) {
@@ -90,6 +95,19 @@ where
             .iter_mut()
             .filter(|pxy| !except.contains(pxy.aid()))
             .map(|pxy| pxy.do_send(sid, msg.clone()))
+            .collect();
+    }
+
+    /// Does send a message to all neighbours except the ones from the list.
+    pub fn do_send_to_proxy(&mut self, source: &ActorId, destination: &ActorId, msg: PMsg<P>)
+    where
+        P: Clone,
+    {
+        let _: Vec<_> = self
+            .proxies
+            .iter_mut()
+            .filter(|pxy| pxy.aid() == destination)
+            .map(|pxy| pxy.do_send(source, msg.clone()))
             .collect();
     }
 }

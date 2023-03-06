@@ -1,8 +1,7 @@
 use actix::prelude::*;
 use kantor::{
-    NodeActor,
     protocol::{Builder, SessionId},
-    *,
+    NodeActor, *,
 };
 use log::debug;
 
@@ -57,7 +56,7 @@ impl ProtocolHandler for MyHandler {
                     .with_hid(self.aid)
                     .build();
 
-                ContinuationHandler::SendToAllNodes(self.aid, msg)
+                ContinuationHandler::SendToAllNodes(msg)
             }
             MyPayload::Forward(_value) => {
                 let sid = msg.sid();
@@ -69,7 +68,7 @@ impl ProtocolHandler for MyHandler {
                     // forward the message to all neighbours excepts the source.
                     let hid: ActorId = msg.hid().aid();
                     let msg = Builder::with_message(msg).with_hid(self.aid).build();
-                    ContinuationHandler::SendToAllNodesExcept(self.aid, msg, vec![hid])
+                    ContinuationHandler::SendToAllNodesExcept(msg, vec![hid])
                 } else {
                     debug!("Received a message for a recorded sessions {:?}", sid);
                     ContinuationHandler::Done

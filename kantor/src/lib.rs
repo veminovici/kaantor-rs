@@ -22,9 +22,9 @@ pub enum ContinuationHandler<P> {
     /// Send a messagge to a neighbour
     SendToNode(ActorId, protocol::Message<P>),
     /// Send a message to all neighbours
-    SendToAllNodes(ActorId, protocol::Message<P>),
+    SendToAllNodes(protocol::Message<P>),
     /// Send a message to all neightbours excepts few
-    SendToAllNodesExcept(ActorId, protocol::Message<P>, Vec<ActorId>),
+    SendToAllNodesExcept(protocol::Message<P>, Vec<ActorId>),
     /// We are done
     Done,
 }
