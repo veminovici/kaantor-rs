@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use crate::{node::Builder as NBuilder, protocol::Message as ProMsg, *};
 use actix::prelude::*;
 
@@ -46,10 +48,21 @@ where
 impl<H> Handler<PMsg<H::Payload>> for NodeActor<H>
 where
     H: ProtocolHandler + Unpin + 'static,
+    <H as ProtocolHandler>::Payload: Debug,
 {
     type Result = ();
 
-    fn handle(&mut self, msg: PMsg<H::Payload>, _: &mut Context<Self>) {
+    fn handle(&mut self, msg: PMsg<H::Payload>, _: &mut Context<Self>)
+    {
+        let me = self.ph.aid();
+        let hid = msg.hid().clone();
+        let fid = msg.fid().clone();
+        let tid = msg.tid().clone();
+        let sid = msg.sid().clone();
+        let pld = msg.payload().clone();
+
+        debug!(">>| on {} from {} | {}->{} | {} | {:?}", me, hid, fid, tid, sid, pld);
+
         self.ph.receive(&mut self.proxies, msg)
     }
 }
@@ -57,6 +70,7 @@ where
 impl<H> NodeActor<H>
 where
     H: ProtocolHandler + Unpin,
+    <H as ProtocolHandler>::Payload: Debug,
 {
     /// Builds a new node actor.
     pub fn build(ph: H) -> Node<NodeActor<H>, H::Payload> {

@@ -103,7 +103,7 @@ fn main() {
         // the payload 999, starting with the first node.
 
         let msg = Builder::with_from(*p1.aid())
-            .with_to_actor(*p2.aid())
+            .with_to_actor(*p1.aid())
             .with_session(50.into())
             .with_payload(MyPayload::Start(999))
             .with_hid(*p1.aid())
