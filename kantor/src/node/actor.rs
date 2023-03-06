@@ -62,17 +62,46 @@ where
         let pld = msg.payload();
 
         info!(
-            ">>| on {} from {} | {}->{} | {} | {:?}",
+            "RECV'ng on {} from {} | {}->{} | {} | {:?}",
             me, hid, fid, tid, sid, pld
         );
 
         let res = self.ph.receive(&self.proxies, msg);
         match res {
-            ContinuationHandler::SendToNode(me, msg) => self.proxies.do_send_all_except(&me, msg, &[]),
+            ContinuationHandler::SendToNode(me, msg) => {
+                let from = msg.fid();
+                let to = msg.tid();
+                let sid = *msg.sid();
+                let pld = msg.payload();
+                info!(
+                    "SEND'ng from {} to node | {}->{} | {} | {:?}",
+                    me, from, to, sid, pld
+                );
+
+                self.proxies.do_send_all_except(&me, msg, &[])
+            }
             ContinuationHandler::SendToAllNodes(me, msg) => {
+                let from = msg.fid();
+                let to = msg.tid();
+                let sid = *msg.sid();
+                let pld = msg.payload();
+                info!(
+                    "SEND'ng from {} to all | {}->{} | {} | {:?}",
+                    me, from, to, sid, pld
+                );
+
                 self.proxies.do_send_all_except(&me, msg, &[])
             }
             ContinuationHandler::SendToAllNodesExcept(me, msg, except) => {
+                let from = msg.fid();
+                let to = msg.tid();
+                let sid = *msg.sid();
+                let pld = msg.payload();
+                info!(
+                    "SEND'ng from {} to all-- | {}->{} | {} | {:?}",
+                    me, from, to, sid, pld
+                );
+
                 self.proxies.do_send_all_except(&me, msg, except.as_slice())
             }
             ContinuationHandler::Done => (),

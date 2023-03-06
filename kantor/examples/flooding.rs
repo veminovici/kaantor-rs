@@ -48,7 +48,7 @@ impl ProtocolHandler for MyHandler {
                 let sid = msg.sid();
                 self.sessions.push(*sid);
 
-                info!("Node {} received the payload", self.aid);
+                // info!("Node {} received the payload", self.aid);
 
                 let msg = Builder::with_from_actor(self.aid)
                     .with_to_all_actors()
@@ -57,13 +57,13 @@ impl ProtocolHandler for MyHandler {
                     .with_hid(self.aid)
                     .build();
 
-                    ContinuationHandler::SendToAllNodes(self.aid, msg)
+                ContinuationHandler::SendToAllNodes(self.aid, msg)
             }
             MyPayload::Forward(_value) => {
                 let sid = msg.sid();
 
                 if !self.sessions.contains(sid) {
-                    info!("Node {} received the payload", self.aid);
+                    //info!("Node {} received the payload", self.aid);
                     self.sessions.push(sid.clone());
 
                     // forward the message to all neighbours excepts the source.
