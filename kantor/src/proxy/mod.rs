@@ -36,8 +36,9 @@ where
     }
 
     #[inline]
-    fn debug_op(&self, op: &str, mid: &MessageId, sid: &ActorId) {
-        debug!("{}'ng [{}-->{}] [{}]", op, sid, &self.aid, mid)
+    fn debug_op(&self, op: &str, from: &ActorId) {
+        let to = &self.aid;
+        debug!("{}'ng [{}-->{}]", op, from, to)
     }
 
     fn new(aid: ActorId, recipient: Recipient<M>) -> Self {
@@ -60,9 +61,9 @@ where
     }
 
     /// Sends a message `M` to the remote node.
-    pub async fn send(&mut self, sid: &ActorId, msg: M) -> Result<M::Result, MailboxError> {
+    pub async fn send(&mut self, from: &ActorId, msg: M) -> Result<M::Result, MailboxError> {
         let mid = self.incrememt_mid();
-        self.debug_op("send", &mid, sid);
+        self.debug_op("send", from);
 
         match self.recipient.send(msg).await {
             Ok(x) => {
@@ -78,9 +79,9 @@ where
     }
 
     /// Tries to send a message `M` to the remote node.
-    pub fn try_send(&mut self, sid: &ActorId, msg: M) -> Result<(), SendError<M>> {
+    pub fn try_send(&mut self, from: &ActorId, msg: M) -> Result<(), SendError<M>> {
         let mid = self.incrememt_mid();
-        self.debug_op("try_send", &mid, sid);
+        self.debug_op("try_send", from);
 
         match self.recipient.try_send(msg) {
             Ok(x) => {
@@ -96,9 +97,9 @@ where
     }
 
     /// Does send a message to the remote node.
-    pub fn do_send(&mut self, sid: &ActorId, msg: M) {
-        let mid = self.incrememt_mid();
-        self.debug_op("do_send", &mid, sid);
+    pub fn do_send(&mut self, from: &ActorId, msg: M) {
+        let _mid = self.incrememt_mid();
+        self.debug_op("do_send", from);
 
         self.recipient.do_send(msg);
         self.metrics.record_success();

@@ -1,5 +1,5 @@
-use std::fmt::{Debug, Display};
 use crate::ActorId;
+use std::fmt::{Debug, Display};
 
 /// Reprsents the sender of the message for this current leg.
 #[derive(PartialEq, Clone)]

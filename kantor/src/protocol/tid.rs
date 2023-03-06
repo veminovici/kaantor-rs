@@ -15,9 +15,9 @@ pub enum ToId {
 impl Debug for ToId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::ToActor(aid) => write!(f, "{}", aid),
+            Self::ToActor(aid) => write!(f, "{aid}"),
             Self::ToAllActors => write!(f, "all"),
-            Self::ToAllActorsExcept(e) => writeln!(f, "all-- {:?}", e),
+            Self::ToAllActorsExcept(e) => writeln!(f, "all-- {e:?}"),
         }
     }
 }

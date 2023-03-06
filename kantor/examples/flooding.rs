@@ -5,7 +5,8 @@ use kantor::{
     *,
 };
 use log::{debug, info};
-#[derive(Clone)]
+
+#[derive(Debug, Clone)]
 enum MyPayload {
     Start(usize),
     Forward(usize),
@@ -49,11 +50,13 @@ impl ProtocolHandler for MyHandler {
 
                 info!("Node {} received the payload", self.aid);
 
-                let msg = Builder::with_from_to(&msg)
+                let msg = Builder::with_from(self.aid)
+                    .with_to_all_actors()
                     .with_session(*sid)
                     .with_payload(MyPayload::Forward(*value))
                     .with_hid(self.aid)
                     .build();
+
                 proxies.do_send_all_except(&self.aid, msg, &[])
             }
             MyPayload::Forward(_value) => {

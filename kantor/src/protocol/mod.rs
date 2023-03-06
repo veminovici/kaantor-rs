@@ -12,7 +12,6 @@ pub use hid::*;
 pub use sid::*;
 pub use tid::*;
 
-use actix::prelude::*;
 use std::fmt::Debug;
 
 /// A protocol message
@@ -25,15 +24,16 @@ pub struct Message<P> {
     pub(crate) payload: P,
 }
 
-impl<P> Debug for Message<P> {
+impl<P> Debug for Message<P>
+where
+    P: Debug,
+{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Message")
-            .field("fid", &self.fid)
-            .field("tid", &self.tid)
-            .field("sid", &self.sid)
-            .field("hid", &self.hid)
-            .field("payload", &"------")
-            .finish()
+        write!(
+            f,
+            "[{}] [{}-->{}] [{}]",
+            &self.sid, &self.fid, &self.tid, &self.hid
+        )
     }
 }
 

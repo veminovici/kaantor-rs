@@ -1,6 +1,5 @@
 //! Implements the builder patter for the procotol messages.
 //!
-use super::Message;
 use crate::{protocol::*, ActorId};
 use std::marker::PhantomData;
 
@@ -50,7 +49,7 @@ impl<P> Builder<P, states::New> {
 
     /// Initializes the building chain by creating a builder from a received
     /// `Message` instance.
-    pub fn with_message(msg: Message<P>) -> Builder<P, states::WithPayload> {
+    pub fn with_message(msg: super::Message<P>) -> Builder<P, states::WithPayload> {
         Builder::<P, states::WithPayload> {
             fid: Some(msg.fid),
             tid: Some(msg.tid),
@@ -75,7 +74,7 @@ impl<P> Builder<P, states::New> {
 
     /// Initializes the building chain by creating a builder initialized
     /// with the `FromId` and `ToId` values from a given message.
-    pub fn with_from_to(msg: &Message<P>) -> Builder<P, states::WithToId> {
+    pub fn with_from_to(msg: &super::Message<P>) -> Builder<P, states::WithToId> {
         let fid = msg.fid().clone();
         let tid = msg.tid().clone();
         let sid = *msg.sid();
@@ -161,8 +160,8 @@ impl<P> Builder<P, states::WithPayload> {
 
 impl<P> Builder<P, states::Ready> {
     /// Finalizes the chain by building the `Message` instance.
-    pub fn build(self) -> Message<P> {
-        Message {
+    pub fn build(self) -> super::Message<P> {
+        super::Message {
             fid: self.fid.unwrap(),
             tid: self.tid.unwrap(),
             sid: self.sid.unwrap(),
