@@ -6,7 +6,7 @@ use kantor::{
 };
 use log::{debug, info};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 enum MyPayload {
     Start(usize),
     Forward(usize),
