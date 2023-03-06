@@ -39,7 +39,7 @@ impl ProtocolHandler for MyHandler {
         _proxies: &Proxies<Self::Payload>,
         msg: protocol::Message<Self::Payload>,
     ) -> ContinuationHandler<Self::Payload> {
-        println!("Actor {:?} received a protocol {:?} message", self.aid, msg);
+        //println!("Actor {:?} received a protocol {:?} message", self.aid, msg);
 
         let payload = msg.payload();
 
