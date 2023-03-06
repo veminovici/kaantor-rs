@@ -26,7 +26,7 @@ impl ProtocolHandler for MyHandler {
 
     fn receive(
         &mut self,
-        proxies: &mut Proxies<Self::Payload>,
+        _proxies: &mut Proxies<Self::Payload>,
         msg: protocol::Message<Self::Payload>,
     ) {
         self.count += 1;
