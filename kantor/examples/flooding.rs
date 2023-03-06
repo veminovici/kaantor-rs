@@ -2,7 +2,7 @@ use actix::prelude::*;
 use kantor::{node::NodeActor, protocol::Builder, *};
 use log::debug;
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct SessionId(usize);
 
 impl From<usize> for SessionId {
@@ -19,12 +19,15 @@ enum MyPayload {
 
 struct MyHandler {
     aid: ActorId,
-    count: usize,
+    sessions: Vec<SessionId>,
 }
 
 impl MyHandler {
     pub fn new(aid: ActorId) -> Self {
-        Self { aid, count: 0 }
+        Self {
+            aid,
+            sessions: Default::default(),
+        }
     }
 }
 
@@ -40,20 +43,30 @@ impl ProtocolHandler for MyHandler {
         proxies: &mut Proxies<Self::Payload>,
         msg: protocol::Message<Self::Payload>,
     ) {
-        self.count += 1;
         println!("Actor {:?} received a protocol {:?} message", self.aid, msg);
 
         let payload = msg.payload();
 
         match payload {
             MyPayload::Start(sid, value) => {
+                self.sessions.push(*sid);
+
                 let msg = Builder::with_from_to(&msg)
                     .with_payload(MyPayload::Forward(*sid, *value))
                     .with_hid(self.aid)
                     .build();
                 proxies.do_send_all_except(&self.aid, msg, &[])
             }
-            MyPayload::Forward(_sid, _value) => (),
+            MyPayload::Forward(sid, _value) => {
+                if !self.sessions.contains(sid) {
+                    let hid: ActorId = msg.hid().aid();
+                    // forward the message
+                    let msg = Builder::with_message(msg).with_hid(self.aid).build();
+                    proxies.do_send_all_except(&self.aid, msg, &[hid])
+                } else {
+                    debug!("Received a message for a recorded sessions {:?}", sid)
+                }
+            }
         }
     }
 }

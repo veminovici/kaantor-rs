@@ -24,3 +24,10 @@ impl From<usize> for HopId {
         Self::from(aid)
     }
 }
+
+impl HopId {
+    /// Retrieves the actor id.
+    pub fn aid(&self) -> ActorId {
+        self.0
+    }
+}
