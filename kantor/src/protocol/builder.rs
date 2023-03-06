@@ -78,7 +78,7 @@ impl<P> Builder<P, states::New> {
     pub fn with_from_to(msg: &Message<P>) -> Builder<P, states::WithToId> {
         let fid = msg.fid().clone();
         let tid = msg.tid().clone();
-        let sid = msg.sid().clone();
+        let sid = *msg.sid();
 
         Builder::<P, states::WithToId> {
             fid: Some(fid),
@@ -126,7 +126,7 @@ impl<P> Builder<P, states::WithToId> {
             sid: Some(sid),
             payload: self.payload,
             hid: self.hid,
-            phantom: PhantomData
+            phantom: PhantomData,
         }
     }
 }

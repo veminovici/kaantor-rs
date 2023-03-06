@@ -1,6 +1,10 @@
 use actix::prelude::*;
-use kantor::{node::NodeActor, protocol::{Builder, SessionId}, *};
-use log::debug;
+use kantor::{
+    node::NodeActor,
+    protocol::{Builder, SessionId},
+    *,
+};
+use log::{debug, info};
 #[derive(Clone)]
 enum MyPayload {
     Start(usize),
@@ -16,7 +20,7 @@ impl MyHandler {
     pub fn build(aid: ActorId) -> Node<NodeActor<Self>, MyPayload> {
         let h = Self {
             aid,
-            sessions: vec![]
+            sessions: vec![],
         };
         NodeActor::build(h)
     }
@@ -43,6 +47,8 @@ impl ProtocolHandler for MyHandler {
                 let sid = msg.sid();
                 self.sessions.push(*sid);
 
+                info!("Node {} received the payload", self.aid);
+
                 let msg = Builder::with_from_to(&msg)
                     .with_session(*sid)
                     .with_payload(MyPayload::Forward(*value))
@@ -54,6 +60,9 @@ impl ProtocolHandler for MyHandler {
                 let sid = msg.sid();
 
                 if !self.sessions.contains(sid) {
+                    info!("Node {} received the payload", self.aid);
+                    self.sessions.push(sid.clone());
+
                     let hid: ActorId = msg.hid().aid();
                     // forward the message
                     let msg = Builder::with_message(msg).with_hid(self.aid).build();
@@ -72,12 +81,23 @@ fn main() {
 
     let sys = System::new();
     sys.block_on(async {
+        // Create the communication graph between the nodes
+        // First we create the nodes and then we add the edges between them
+
         let mut p1 = MyHandler::build(1.into());
         let mut p2 = MyHandler::build(2.into());
         let mut p3 = MyHandler::build(3.into());
+        let mut p4 = MyHandler::build(4.into());
+        let mut p5 = MyHandler::build(5.into());
 
         add_edge(&mut p1, &mut p2).await; // 1 - 2
         add_edge(&mut p1, &mut p3).await; // 1 - 3
+        add_edge(&mut p2, &mut p4).await; // 2 - 4
+        add_edge(&mut p4, &mut p5).await; // 4 - 5
+        add_edge(&mut p3, &mut p5).await; // 3 - 5
+
+        // Start the flooding, the idea is to prapagate to all nodes
+        // the payload 999, starting with the first node.
 
         let msg = Builder::with_from(*p1.aid())
             .with_to_actor(*p2.aid())
