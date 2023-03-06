@@ -49,7 +49,7 @@ where
 impl<H> Handler<PMsg<H::Payload>> for NodeActor<H>
 where
     H: ProtocolHandler + Unpin + 'static,
-    <H as ProtocolHandler>::Payload: Debug,
+    <H as ProtocolHandler>::Payload: Debug + Clone,
 {
     type Result = ();
 
@@ -66,14 +66,24 @@ where
             me, hid, fid, tid, sid, pld
         );
 
-        self.ph.receive(&mut self.proxies, msg)
+        let res = self.ph.receive(&self.proxies, msg);
+        match res {
+            ContinuationHandler::SendToNode(me, msg) => self.proxies.do_send_all_except(&me, msg, &[]),
+            ContinuationHandler::SendToAllNodes(me, msg) => {
+                self.proxies.do_send_all_except(&me, msg, &[])
+            }
+            ContinuationHandler::SendToAllNodesExcept(me, msg, except) => {
+                self.proxies.do_send_all_except(&me, msg, except.as_slice())
+            }
+            ContinuationHandler::Done => (),
+        }
     }
 }
 
 impl<H> NodeActor<H>
 where
     H: ProtocolHandler + Unpin,
-    <H as ProtocolHandler>::Payload: Debug,
+    <H as ProtocolHandler>::Payload: Debug + Clone,
 {
     /// Builds a new node actor.
     pub fn build(ph: H) -> Node<NodeActor<H>, H::Payload> {

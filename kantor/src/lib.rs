@@ -17,6 +17,18 @@ use protocol::Message as PMsg;
 
 type GMsg<P> = graph::GraphMsg<PMsg<P>>;
 
+/// The follow up
+pub enum ContinuationHandler<P> {
+    /// Send a messagge to a neighbour
+    SendToNode(ActorId, protocol::Message<P>),
+    /// Send a message to all neighbours
+    SendToAllNodes(ActorId, protocol::Message<P>),
+    /// Send a message to all neightbours excepts few
+    SendToAllNodesExcept(ActorId, protocol::Message<P>, Vec<ActorId>),
+    /// We are done
+    Done,
+}
+
 /// The trait which defines the behaviour of a node.
 pub trait ProtocolHandler {
     /// The type of payload for the messages.
@@ -28,9 +40,9 @@ pub trait ProtocolHandler {
     /// Processes the received message.
     fn receive(
         &mut self,
-        prptoxies: &mut Proxies<Self::Payload>,
+        proxies: &Proxies<Self::Payload>,
         msg: protocol::Message<Self::Payload>,
-    );
+    ) -> ContinuationHandler<Self::Payload>;
 }
 
 /// Add a bi-directional connection between two ndoes.

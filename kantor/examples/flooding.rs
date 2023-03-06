@@ -36,9 +36,9 @@ impl ProtocolHandler for MyHandler {
 
     fn receive(
         &mut self,
-        proxies: &mut Proxies<Self::Payload>,
+        _proxies: &Proxies<Self::Payload>,
         msg: protocol::Message<Self::Payload>,
-    ) {
+    ) -> ContinuationHandler<Self::Payload> {
         println!("Actor {:?} received a protocol {:?} message", self.aid, msg);
 
         let payload = msg.payload();
@@ -57,7 +57,7 @@ impl ProtocolHandler for MyHandler {
                     .with_hid(self.aid)
                     .build();
 
-                proxies.do_send_all_except(&self.aid, msg, &[])
+                    ContinuationHandler::SendToAllNodes(self.aid, msg)
             }
             MyPayload::Forward(_value) => {
                 let sid = msg.sid();
@@ -66,12 +66,13 @@ impl ProtocolHandler for MyHandler {
                     info!("Node {} received the payload", self.aid);
                     self.sessions.push(sid.clone());
 
+                    // forward the message to all neighbours excepts the source.
                     let hid: ActorId = msg.hid().aid();
-                    // forward the message
                     let msg = Builder::with_message(msg).with_hid(self.aid).build();
-                    proxies.do_send_all_except(&self.aid, msg, &[hid])
+                    ContinuationHandler::SendToAllNodesExcept(self.aid, msg, vec![hid])
                 } else {
-                    debug!("Received a message for a recorded sessions {:?}", sid)
+                    debug!("Received a message for a recorded sessions {:?}", sid);
+                    ContinuationHandler::Done
                 }
             }
         }
