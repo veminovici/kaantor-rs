@@ -1,37 +1,35 @@
 use actix::prelude::*;
-use kantor::{
-    node::{Builder as NBuilder, Player, PlayerHandler},
-    protocol::Message as ProMsg,
-    *,
-};
+use kantor::{node::NodeActor, *};
 use log::debug;
 
 enum MyPayload {
     Position(usize),
 }
 
-struct MyProtocol {
+struct MyHandler {
     aid: ActorId,
+    count: usize,
 }
 
-impl MyProtocol {
+impl MyHandler {
     pub fn new(aid: ActorId) -> Self {
-        Self { aid }
+        Self { aid, count: 0 }
     }
 }
 
-impl PlayerHandler for MyProtocol {
+impl ProtocolHandler for MyHandler {
     type Payload = MyPayload;
 
     fn aid(&self) -> ActorId {
         self.aid
     }
 
-    fn handler(
+    fn receive(
         &mut self,
         proxies: &mut Proxies<Self::Payload>,
         msg: protocol::Message<Self::Payload>,
     ) {
+        self.count += 1;
         println!("Actor {:?} received a protocol {:?} message", self.aid, msg);
     }
 }
@@ -42,13 +40,13 @@ fn main() {
 
     let sys = System::new();
     sys.block_on(async {
-        let myProtocol1 = MyProtocol::new(1.into());
-        let myProtocol2 = MyProtocol::new(2.into());
-        let myProtocol3 = MyProtocol::new(3.into());
+        let handler1 = MyHandler::new(1.into());
+        let handler2 = MyHandler::new(2.into());
+        let handler3 = MyHandler::new(3.into());
 
-        let mut p1 = Player::build(myProtocol1);
-        let mut p2 = Player::build(myProtocol2);
-        let mut p3 = Player::build(myProtocol3);
+        let mut p1 = NodeActor::build(handler1);
+        let mut p2 = NodeActor::build(handler2);
+        let mut p3 = NodeActor::build(handler3);
 
         add_edge(&mut p1, &mut p2).await; // 1 - 2
         add_edge(&mut p1, &mut p3).await; // 1 - 3

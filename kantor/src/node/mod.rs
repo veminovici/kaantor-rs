@@ -7,6 +7,7 @@ mod proxies;
 
 pub use builder::*;
 pub use player::*;
+pub use player::*;
 pub use proxies::*;
 
 use crate::{

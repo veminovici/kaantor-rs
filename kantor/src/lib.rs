@@ -9,13 +9,25 @@ pub mod protocol;
 mod proxy;
 
 pub use aid::*;
-use log::debug;
 pub use node::{Node, Proxies};
 
 use actix::{dev::ToEnvelope, prelude::*};
+use log::debug;
 use protocol::Message as PMsg;
 
 type GMsg<P> = graph::GraphMsg<PMsg<P>>;
+
+pub trait ProtocolHandler {
+    type Payload: Send;
+
+    fn aid(&self) -> ActorId;
+
+    fn receive(
+        &mut self,
+        prptoxies: &mut Proxies<Self::Payload>,
+        msg: protocol::Message<Self::Payload>,
+    );
+}
 
 /// Add a bi-directional connection between two ndoes.
 pub async fn add_edge<A, P>(a: &mut Node<A, P>, b: &mut Node<A, P>)
