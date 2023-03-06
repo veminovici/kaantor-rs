@@ -1,8 +1,8 @@
 use crate::ActorId;
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
 
 /// Represents the destination of the message.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(PartialEq, Clone)]
 pub enum ToId {
     /// The destination is a specific actor.
     ToActor(ActorId),
@@ -10,6 +10,16 @@ pub enum ToId {
     ToAllActors,
     /// The destination are all actors excepts a list of them.
     ToAllActorsExcept(Vec<ActorId>),
+}
+
+impl Debug for ToId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::ToActor(aid) => write!(f, "{}", aid),
+            Self::ToAllActors => write!(f, "all"),
+            Self::ToAllActorsExcept(e) => writeln!(f, "all-- {:?}", e),
+        }
+    }
 }
 
 impl Display for ToId {

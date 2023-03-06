@@ -1,10 +1,15 @@
-use std::fmt::Display;
-
+use std::fmt::{Debug, Display};
 use crate::ActorId;
 
 /// Reprsents the sender of the message for this current leg.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(PartialEq, Clone)]
 pub struct HopId(ActorId);
+
+impl Debug for HopId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 impl Display for HopId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

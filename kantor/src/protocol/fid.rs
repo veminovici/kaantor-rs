@@ -1,12 +1,20 @@
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
 
 use crate::ActorId;
 
 /// Represents origin of the message.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(PartialEq, Clone)]
 pub enum FromId {
     /// The message is originating from an actor
     FromActor(ActorId),
+}
+
+impl Debug for FromId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            FromId::FromActor(aid) => write!(f, "{aid}"),
+        }
+    }
 }
 
 impl Display for FromId {
