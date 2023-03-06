@@ -11,7 +11,7 @@ pub use proxies::*;
 
 use crate::{
     graph::GraphMsg,
-    protocol::{states, Builder as ProBldr, Message as PMsg},
+    protocol::Message as PMsg,
     proxy::{Builder as PxyBuilder, Proxy},
     ActorId,
 };
@@ -54,11 +54,6 @@ where
     /// Gets the acotr identifier.
     pub fn aid(&self) -> &ActorId {
         &self.aid
-    }
-
-    /// Returns a protocol builder.
-    pub fn protocol_builder(&self) -> ProBldr<P, states::WithFromId> {
-        ProBldr::from_aid(self.aid)
     }
 
     fn get_cfg_proxy(aid: ActorId, addr: Addr<A>) -> Proxy<GMsg<P>> {
