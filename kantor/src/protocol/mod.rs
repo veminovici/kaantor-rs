@@ -3,11 +3,13 @@
 mod builder;
 mod fid;
 mod hid;
+mod sid;
 mod tid;
 
 pub use builder::*;
 pub use fid::*;
 pub use hid::*;
+pub use sid::*;
 pub use tid::*;
 
 use actix::prelude::*;
@@ -18,6 +20,7 @@ use std::fmt::Debug;
 pub struct Message<P> {
     pub(crate) fid: FromId,
     pub(crate) tid: ToId,
+    pub(crate) sid: SessionId,
     pub(crate) hid: HopId,
     pub(crate) payload: P,
 }
@@ -27,6 +30,7 @@ impl<P> Debug for Message<P> {
         f.debug_struct("Message")
             .field("fid", &self.fid)
             .field("tid", &self.tid)
+            .field("sid", &self.sid)
             .field("hid", &self.hid)
             .field("payload", &"------")
             .finish()
@@ -42,6 +46,11 @@ impl<P> Message<P> {
     /// Get the `ToId`
     pub fn tid(&self) -> &ToId {
         &self.tid
+    }
+
+    /// Get the `SessionId`
+    pub fn sid(&self) -> &SessionId {
+        &self.sid
     }
 
     /// Get the `HopId`
