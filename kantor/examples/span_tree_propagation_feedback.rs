@@ -1,6 +1,6 @@
 use actix::prelude::*;
 use kantor::{
-    protocol::{Builder, SessionId},
+    protocol::Builder,
     NodeActor, *,
 };
 use log::{debug, info};
