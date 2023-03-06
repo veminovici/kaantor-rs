@@ -61,9 +61,21 @@ impl<P> Builder<P, states::New> {
     }
 
     /// Initializes the building chain by creating a builder from an `ActorId`
-    pub fn with_from(aid: ActorId) -> Builder<P, states::WithFromId> {
+    pub fn with_from_actor(aid: ActorId) -> Builder<P, states::WithFromId> {
         Builder::<P, states::WithFromId> {
-            fid: Some(FromId::FromActor(aid)),
+            fid: Some(FromId::Actor(aid)),
+            tid: None,
+            sid: None,
+            payload: None,
+            hid: None,
+            phantom: PhantomData,
+        }
+    }
+
+    /// Initializes the building chain by creating a builder from an api invocation
+    pub fn with_from_api() -> Builder<P, states::WithFromId> {
+        Builder::<P, states::WithFromId> {
+            fid: Some(FromId::Api),
             tid: None,
             sid: None,
             payload: None,
@@ -95,7 +107,7 @@ impl<P> Builder<P, states::WithFromId> {
     pub fn with_to_actor(self, aid: ActorId) -> Builder<P, states::WithToId> {
         Builder::<P, states::WithToId> {
             fid: self.fid,
-            tid: Some(ToId::ToActor(aid)),
+            tid: Some(ToId::Actor(aid)),
             sid: self.sid,
             payload: self.payload,
             hid: self.hid,
@@ -107,7 +119,7 @@ impl<P> Builder<P, states::WithFromId> {
     pub fn with_to_all_actors(self) -> Builder<P, states::WithToId> {
         Builder::<P, states::WithToId> {
             fid: self.fid,
-            tid: Some(ToId::ToAllActors),
+            tid: Some(ToId::All),
             sid: self.sid,
             payload: self.payload,
             hid: self.hid,
@@ -177,7 +189,7 @@ mod utests {
 
     #[test]
     fn build_() {
-        let msg = Builder::with_from(5.into())
+        let msg = Builder::with_from_actor(5.into())
             .with_to_actor(10.into())
             .with_session(50.into())
             .with_payload(5000)

@@ -50,7 +50,7 @@ impl ProtocolHandler for MyHandler {
 
                 info!("Node {} received the payload", self.aid);
 
-                let msg = Builder::with_from(self.aid)
+                let msg = Builder::with_from_actor(self.aid)
                     .with_to_all_actors()
                     .with_session(*sid)
                     .with_payload(MyPayload::Forward(*value))
@@ -102,7 +102,7 @@ fn main() {
         // Start the flooding, the idea is to prapagate to all nodes
         // the payload 999, starting with the first node.
 
-        let msg = Builder::with_from(*p1.aid())
+        let msg = Builder::with_from_api()
             .with_to_actor(*p1.aid())
             .with_session(50.into())
             .with_payload(MyPayload::Start(999))

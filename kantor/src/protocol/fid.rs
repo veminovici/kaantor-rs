@@ -6,13 +6,16 @@ use crate::ActorId;
 #[derive(PartialEq, Clone)]
 pub enum FromId {
     /// The message is originating from an actor
-    FromActor(ActorId),
+    Actor(ActorId),
+    /// A public api invocation
+    Api,
 }
 
 impl Debug for FromId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            FromId::FromActor(aid) => write!(f, "{aid}"),
+            FromId::Actor(aid) => write!(f, "{aid}"),
+            FromId::Api => write!(f, "api"),
         }
     }
 }
@@ -20,14 +23,15 @@ impl Debug for FromId {
 impl Display for FromId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            FromId::FromActor(aid) => write!(f, "{aid}"),
+            FromId::Actor(aid) => write!(f, "{aid}"),
+            FromId::Api => write!(f, "api"),
         }
     }
 }
 
 impl From<ActorId> for FromId {
     fn from(value: ActorId) -> Self {
-        FromId::FromActor(value)
+        FromId::Actor(value)
     }
 }
 

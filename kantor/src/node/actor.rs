@@ -2,6 +2,7 @@ use std::fmt::Debug;
 
 use crate::{node::Builder as NBuilder, protocol::Message as ProMsg, *};
 use actix::prelude::*;
+use log::info;
 
 type PMsg<P> = ProMsg<P>;
 type GMsg<P> = graph::GraphMsg<PMsg<P>>;
@@ -52,16 +53,18 @@ where
 {
     type Result = ();
 
-    fn handle(&mut self, msg: PMsg<H::Payload>, _: &mut Context<Self>)
-    {
+    fn handle(&mut self, msg: PMsg<H::Payload>, _: &mut Context<Self>) {
         let me = self.ph.aid();
         let hid = msg.hid().clone();
         let fid = msg.fid().clone();
         let tid = msg.tid().clone();
-        let sid = msg.sid().clone();
-        let pld = msg.payload().clone();
+        let sid = *msg.sid();
+        let pld = msg.payload();
 
-        debug!(">>| on {} from {} | {}->{} | {} | {:?}", me, hid, fid, tid, sid, pld);
+        info!(
+            ">>| on {} from {} | {}->{} | {} | {:?}",
+            me, hid, fid, tid, sid, pld
+        );
 
         self.ph.receive(&mut self.proxies, msg)
     }

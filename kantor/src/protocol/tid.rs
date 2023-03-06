@@ -5,19 +5,19 @@ use std::fmt::{Debug, Display};
 #[derive(PartialEq, Clone)]
 pub enum ToId {
     /// The destination is a specific actor.
-    ToActor(ActorId),
+    Actor(ActorId),
     /// The destination are all actors.
-    ToAllActors,
+    All,
     /// The destination are all actors excepts a list of them.
-    ToAllActorsExcept(Vec<ActorId>),
+    AllExcept(Vec<ActorId>),
 }
 
 impl Debug for ToId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::ToActor(aid) => write!(f, "{aid}"),
-            Self::ToAllActors => write!(f, "all"),
-            Self::ToAllActorsExcept(e) => writeln!(f, "all-- {e:?}"),
+            Self::Actor(aid) => write!(f, "{aid}"),
+            Self::All => write!(f, "all"),
+            Self::AllExcept(e) => writeln!(f, "all-- {e:?}"),
         }
     }
 }
@@ -25,16 +25,16 @@ impl Debug for ToId {
 impl Display for ToId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ToId::ToActor(aid) => write!(f, "{aid}"),
-            ToId::ToAllActors => write!(f, "all"),
-            ToId::ToAllActorsExcept(_) => write!(f, "all--"),
+            ToId::Actor(aid) => write!(f, "{aid}"),
+            ToId::All => write!(f, "all"),
+            ToId::AllExcept(_) => write!(f, "all--"),
         }
     }
 }
 
 impl From<ActorId> for ToId {
     fn from(value: ActorId) -> Self {
-        ToId::ToActor(value)
+        ToId::Actor(value)
     }
 }
 
