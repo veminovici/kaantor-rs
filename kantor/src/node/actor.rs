@@ -62,7 +62,7 @@ where
         let pld = msg.payload();
 
         info!(
-            "RECV'ng on {} from {} | {}->{} | {} | {:?}",
+            "RECV | on {} from {} | {}->{} | {} | {:?}",
             me, hid, fid, tid, sid, pld
         );
 
@@ -74,7 +74,7 @@ where
                 let sid = *msg.sid();
                 let pld = msg.payload();
                 info!(
-                    "SEND'ng from {} to node | {}->{} | {} | {:?}",
+                    "SEND | from {} to node | {}->{} | {} | {:?}",
                     me, from, to, sid, pld
                 );
 
@@ -86,7 +86,7 @@ where
                 let sid = *msg.sid();
                 let pld = msg.payload();
                 info!(
-                    "SEND'ng from {} to all | {}->{} | {} | {:?}",
+                    "SEND | from {} to all | {}->{} | {} | {:?}",
                     me, from, to, sid, pld
                 );
 
@@ -98,8 +98,8 @@ where
                 let sid = *msg.sid();
                 let pld = msg.payload();
                 info!(
-                    "SEND'ng from {} to all-- | {}->{} | {} | {:?}",
-                    me, from, to, sid, pld
+                    "SEND | from {} to all-{:?} | {}->{} | {} | {:?}",
+                    me, except, from, to, sid, pld
                 );
 
                 self.proxies.do_send_all_except(&me, msg, except.as_slice())

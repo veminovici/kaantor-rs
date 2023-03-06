@@ -74,7 +74,7 @@ where
     /// to the current node.
     pub async fn add_proxy(&mut self, proxy: Proxy<PMsg<P>>) -> Result<(), MailboxError> {
         let msg = GraphMsg::AddProxy(proxy);
-        debug!("send'ng graph {} {}", self.aid, msg);
+        debug!("send graph {} {}", self.aid, msg);
         self.cfg.send(&self.aid, msg).await
     }
 
@@ -83,19 +83,19 @@ where
         &mut self,
         msg: PMsg<P>,
     ) -> Result<<PMsg<P> as Message>::Result, MailboxError> {
-        debug!("send'ng proto {}", self.aid);
+        debug!("send proto {}", self.aid);
         self.addr.send(msg).await
     }
 
     /// Try to send a protocol message to the ndoe.
     pub fn try_send(&mut self, msg: PMsg<P>) -> Result<(), SendError<PMsg<P>>> {
-        debug!("try_send'ng proto {}", self.aid);
+        debug!("try_send proto {}", self.aid);
         self.addr.try_send(msg)
     }
 
     /// Does send a protocol message to the node.
     pub fn do_send(&mut self, msg: PMsg<P>) {
-        debug!("do_send'ng proto {}", self.aid);
+        debug!("do_send proto {}", self.aid);
         self.addr.do_send(msg)
     }
 }
