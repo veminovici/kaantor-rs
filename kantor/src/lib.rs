@@ -17,11 +17,15 @@ use protocol::Message as PMsg;
 
 type GMsg<P> = graph::GraphMsg<PMsg<P>>;
 
+/// The trait which defines the behaviour of a node.
 pub trait ProtocolHandler {
+    /// The type of payload for the messages.
     type Payload: Send;
 
+    /// Returns the `ActorId` for the current handler.
     fn aid(&self) -> ActorId;
 
+    /// Processes the received message.
     fn receive(
         &mut self,
         prptoxies: &mut Proxies<Self::Payload>,

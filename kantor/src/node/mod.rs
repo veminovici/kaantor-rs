@@ -1,13 +1,12 @@
 //! A module which implements the main functionality
 //! for the `Node`, the key actor for the distributed systems.
 
+mod actor;
 mod builder;
-mod player;
 mod proxies;
 
+pub use actor::*;
 pub use builder::*;
-pub use player::*;
-pub use player::*;
 pub use proxies::*;
 
 use crate::{

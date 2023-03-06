@@ -4,6 +4,7 @@ use actix::prelude::*;
 type PMsg<P> = ProMsg<P>;
 type GMsg<P> = graph::GraphMsg<PMsg<P>>;
 
+/// Represents a actor for the node in teh graph.
 pub struct NodeActor<H>
 where
     H: ProtocolHandler,
@@ -16,7 +17,7 @@ impl<H> NodeActor<H>
 where
     H: ProtocolHandler,
 {
-    pub fn new(ph: H) -> Self {
+    fn new(ph: H) -> Self {
         Self {
             proxies: Default::default(),
             ph,
@@ -57,6 +58,7 @@ impl<H> NodeActor<H>
 where
     H: ProtocolHandler + Unpin,
 {
+    /// Builds a new node actor.
     pub fn build(ph: H) -> Node<NodeActor<H>, H::Payload> {
         let aid = ph.aid();
         let actor = NodeActor::new(ph);
