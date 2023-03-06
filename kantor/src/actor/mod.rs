@@ -1,3 +1,9 @@
+//! The actor functionality
+
+mod aid;
+
+pub use aid::*;
+
 use std::fmt::Debug;
 
 use crate::{node::Builder as NBuilder, protocol::Message as ProMsg, *};

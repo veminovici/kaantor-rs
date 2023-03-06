@@ -1,10 +1,10 @@
 use actix::prelude::*;
 use kantor::{
-    node::NodeActor,
+    NodeActor,
     protocol::{Builder, SessionId},
     *,
 };
-use log::{debug, info};
+use log::debug;
 
 #[derive(Debug, Clone, Copy)]
 enum MyPayload {

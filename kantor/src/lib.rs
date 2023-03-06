@@ -2,13 +2,13 @@
 
 //! A crate for distributed systems
 
-mod aid;
+mod actor;
 pub mod graph;
 pub mod node;
 pub mod protocol;
 mod proxy;
 
-pub use aid::*;
+pub use actor::*;
 pub use node::{Node, Proxies};
 
 use actix::{dev::ToEnvelope, prelude::*};

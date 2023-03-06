@@ -1,11 +1,9 @@
 //! A module which implements the main functionality
 //! for the `Node`, the key actor for the distributed systems.
 
-mod actor;
 mod builder;
 mod proxies;
 
-pub use actor::*;
 pub use builder::*;
 pub use proxies::*;
 
