@@ -1,4 +1,4 @@
-# KANTOR
+# KAANTOR
 A crate!
 
 ## Traversal Algorithms
