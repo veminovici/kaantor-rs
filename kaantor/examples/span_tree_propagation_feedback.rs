@@ -4,7 +4,7 @@ use kaantor::{
     NodeActor, *,
 };
 use log::{debug, info};
-use std::fmt::{format, Debug};
+use std::fmt::Debug;
 
 use ptree::*;
 
