@@ -39,12 +39,12 @@ where
         let sender = msg.sender();
         let fid = msg.from().clone();
         let to = msg.to().clone();
-        let sid = *msg.sid();
+        let session = *msg.session();
         let pld = msg.payload();
 
         info!(
             "RECV | on {} from {} | {}->{} | {} | {:?}",
-            me, sender, fid, to, sid, pld
+            me, sender, fid, to, session, pld
         );
     }
 }
@@ -83,7 +83,7 @@ where
             ContinuationHandler::SendToNode(tid, msg) => {
                 let from = msg.from();
                 let to = msg.to();
-                let sid = *msg.sid();
+                let sid = *msg.session();
                 let pld = msg.payload();
                 info!(
                     "SEND | from {} to node {} | {}->{} | {} | {:?}",
@@ -95,7 +95,7 @@ where
             ContinuationHandler::SendToAllNodes(msg) => {
                 let from = msg.from();
                 let to = msg.to();
-                let sid = *msg.sid();
+                let sid = *msg.session();
                 let pld = msg.payload();
                 info!(
                     "SEND | from {} to all | {}->{} | {} | {:?}",
@@ -107,7 +107,7 @@ where
             ContinuationHandler::SendToAllNodesExcept(msg, except) => {
                 let from = msg.from();
                 let to = msg.to();
-                let sid = *msg.sid();
+                let sid = *msg.session();
                 let pld = msg.payload();
                 info!(
                     "SEND | from {} to all-{:?} | {}->{} | {} | {:?}",

@@ -1,6 +1,6 @@
 use actix::prelude::*;
 use kaantor::{
-    protocol::{Builder, SessionId},
+    protocol::{Builder, Session},
     NodeActor, *,
 };
 use log::debug;
@@ -13,7 +13,7 @@ enum MyPayload {
 
 struct MyHandler {
     aid: ActorId,
-    sessions: Vec<SessionId>,
+    sessions: Vec<Session>,
 }
 
 impl MyHandler {
@@ -44,14 +44,14 @@ impl ProtocolHandler for MyHandler {
 
         match payload {
             MyPayload::Start(value) => {
-                let sid = msg.sid();
-                self.sessions.push(*sid);
+                let session = msg.session();
+                self.sessions.push(*session);
 
                 // info!("Node {} received the payload", self.aid);
 
                 let msg = Builder::with_from_actor(self.aid)
                     .with_to_all_actors()
-                    .with_session(*sid)
+                    .with_session(*session)
                     .with_payload(MyPayload::Forward(*value))
                     .with_sender(self.aid)
                     .build();
@@ -59,18 +59,18 @@ impl ProtocolHandler for MyHandler {
                 ContinuationHandler::SendToAllNodes(msg)
             }
             MyPayload::Forward(_value) => {
-                let sid = msg.sid();
+                let session = msg.session();
 
-                if !self.sessions.contains(sid) {
+                if !self.sessions.contains(session) {
                     //info!("Node {} received the payload", self.aid);
-                    self.sessions.push(sid.clone());
+                    self.sessions.push(session.clone());
 
                     // forward the message to all neighbours excepts the source.
                     let sender: ActorId = msg.sender().as_aid();
                     let msg = Builder::with_message(msg).with_sender(self.aid).build();
                     ContinuationHandler::SendToAllNodesExcept(msg, vec![sender])
                 } else {
-                    debug!("Received a message for a recorded sessions {:?}", sid);
+                    debug!("Received a message for a recorded sessions {:?}", session);
                     ContinuationHandler::Done
                 }
             }

@@ -1,6 +1,6 @@
 use actix::prelude::*;
 use kaantor::{
-    protocol::{Builder, SessionId},
+    protocol::{Builder, Session},
     NodeActor, *,
 };
 use log::{debug, info};
@@ -109,9 +109,9 @@ impl Handler {
     ) -> ContinuationHandler<Payload> {
         self.parent = Parent::Root;
         self.exp_messages = ns.count();
-        let sid = msg.sid().clone();
+        let session = msg.session().clone();
 
-        self.send_go_to_all_except(sid, vec![])
+        self.send_go_to_all_except(session, vec![])
     }
 
     fn handle_go(
@@ -119,7 +119,7 @@ impl Handler {
         msg: &protocol::Message<Payload>,
         ns: impl Iterator<Item = ActorId>,
     ) -> ContinuationHandler<Payload> {
-        let sid = msg.sid();
+        let session = msg.session();
 
         match self.parent {
             Parent::NoParent => {
@@ -131,21 +131,21 @@ impl Handler {
                     // Continue the discovery of the spanning tree by sending
                     // a GO message to all the neighbours except the one that
                     // sent us the GO.
-                    self.send_go_to_all_except(sid.clone(), vec![sender])
+                    self.send_go_to_all_except(session.clone(), vec![sender])
                 } else {
                     // Finalize the spanning tree search for this node.
                     // Send back_child to the node that sent us the GO meesage.
                     self.debug_spanning_node();
-                    self.send_back_child_to_node(sender, *sid)
+                    self.send_back_child_to_node(sender, *session)
                 }
             }
             Parent::Root => {
                 let sender = msg.sender().as_aid();
-                self.send_back_no_child_to_node(*sid, sender)
+                self.send_back_no_child_to_node(*session, sender)
             }
             Parent::Parent(_) => {
                 let sender = msg.sender().as_aid();
-                self.send_back_no_child_to_node(*sid, sender)
+                self.send_back_no_child_to_node(*session, sender)
             }
         }
     }
@@ -179,7 +179,7 @@ impl Handler {
         _proxies: impl Iterator<Item = ActorId>,
     ) -> ContinuationHandler<Payload> {
         self.exp_messages -= 1;
-        let sid = msg.sid();
+        let session = msg.session();
 
         // info!("{} em={} p={:?}", self.aid, self.exp_messages, self.parent);
 
@@ -201,7 +201,7 @@ impl Handler {
 
                     ContinuationHandler::Done
                 }
-                Parent::Parent(pid) => self.send_back_child_to_node(pid, *sid),
+                Parent::Parent(pid) => self.send_back_child_to_node(pid, *session),
             }
         } else {
             ContinuationHandler::Done
@@ -210,12 +210,12 @@ impl Handler {
 
     fn send_go_to_all_except(
         &self,
-        sid: SessionId,
+        session: Session,
         except: Vec<ActorId>,
     ) -> ContinuationHandler<Payload> {
         let msg = Builder::with_from_actor(self.aid)
             .with_to_all_actors()
-            .with_session(sid)
+            .with_session(session)
             .with_payload(Payload::Go)
             .with_sender(self.aid)
             .build();
@@ -225,12 +225,12 @@ impl Handler {
 
     fn send_back_no_child_to_node(
         &self,
-        sid: SessionId,
+        session: Session,
         sender: ActorId,
     ) -> ContinuationHandler<Payload> {
         let msg = Builder::with_from_actor(self.aid)
             .with_to_actor(sender)
-            .with_session(sid)
+            .with_session(session)
             .with_payload(Payload::BackNoChild)
             .with_sender(self.aid)
             .build();
@@ -241,7 +241,7 @@ impl Handler {
     fn send_back_child_to_node(
         &self,
         pid: ActorId,
-        sid: SessionId,
+        session: Session,
     ) -> ContinuationHandler<Payload> {
         // info!("Back_Child (0) to_actor={hid} send_to_node={hid}");
         let node = STNode {
@@ -254,7 +254,7 @@ impl Handler {
 
         let msg = Builder::with_from_actor(self.aid)
             .with_to_actor(pid)
-            .with_session(sid)
+            .with_session(session)
             .with_payload(Payload::BackChild(ns))
             .with_sender(self.aid)
             .build();

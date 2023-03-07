@@ -12,7 +12,7 @@ mod states {
     /// Builder with `ToId`
     pub struct WithTo {}
     /// Builder with `SessionId`
-    pub struct WithSessionId {}
+    pub struct WithSession {}
     /// Builder with payload
     pub struct WithPayload {}
     /// Builder ready to build
@@ -23,7 +23,7 @@ mod states {
 pub struct Builder<P, S = states::New> {
     from: Option<From>,
     to: Option<To>,
-    sid: Option<SessionId>,
+    session: Option<Session>,
     sender: Option<SenderId>,
     payload: Option<P>,
     phantom: PhantomData<S>,
@@ -40,7 +40,7 @@ impl<P> Builder<P, states::New> {
         Self {
             from: None,
             to: None,
-            sid: None,
+            session: None,
             payload: None,
             sender: None,
             phantom: PhantomData,
@@ -53,7 +53,7 @@ impl<P> Builder<P, states::New> {
         Builder::<P, states::WithPayload> {
             from: Some(msg.from),
             to: Some(msg.to),
-            sid: Some(msg.sid),
+            session: Some(msg.session),
             payload: Some(msg.payload),
             sender: None,
             phantom: PhantomData,
@@ -65,7 +65,7 @@ impl<P> Builder<P, states::New> {
         Builder::<P, states::WithFrom> {
             from: Some(From::from(aid)),
             to: None,
-            sid: None,
+            session: None,
             payload: None,
             sender: None,
             phantom: PhantomData,
@@ -77,7 +77,7 @@ impl<P> Builder<P, states::New> {
         Builder::<P, states::WithFrom> {
             from: Some(From::Api),
             to: None,
-            sid: None,
+            session: None,
             payload: None,
             sender: None,
             phantom: PhantomData,
@@ -89,12 +89,12 @@ impl<P> Builder<P, states::New> {
     pub fn with_from_to(msg: &super::Message<P>) -> Builder<P, states::WithTo> {
         let from = msg.from().clone();
         let to = msg.to().clone();
-        let sid = *msg.sid();
+        let session = *msg.session();
 
         Builder::<P, states::WithTo> {
             from: Some(from),
             to: Some(to),
-            sid: Some(sid),
+            session: Some(session),
             payload: None,
             sender: None,
             phantom: PhantomData,
@@ -108,7 +108,7 @@ impl<P> Builder<P, states::WithFrom> {
         Builder::<P, states::WithTo> {
             from: self.from,
             to: Some(To::from(aid)),
-            sid: self.sid,
+            session: self.session,
             payload: self.payload,
             sender: self.sender,
             phantom: PhantomData,
@@ -120,7 +120,7 @@ impl<P> Builder<P, states::WithFrom> {
         Builder::<P, states::WithTo> {
             from: self.from,
             to: Some(To::All),
-            sid: self.sid,
+            session: self.session,
             payload: self.payload,
             sender: self.sender,
             phantom: PhantomData,
@@ -130,11 +130,11 @@ impl<P> Builder<P, states::WithFrom> {
 
 impl<P> Builder<P, states::WithTo> {
     /// Continues the building chain by setting the session identifier.
-    pub fn with_session(self, sid: SessionId) -> Builder<P, states::WithSessionId> {
-        Builder::<P, states::WithSessionId> {
+    pub fn with_session(self, session: Session) -> Builder<P, states::WithSession> {
+        Builder::<P, states::WithSession> {
             from: self.from,
             to: self.to,
-            sid: Some(sid),
+            session: Some(session),
             payload: self.payload,
             sender: self.sender,
             phantom: PhantomData,
@@ -142,13 +142,13 @@ impl<P> Builder<P, states::WithTo> {
     }
 }
 
-impl<P> Builder<P, states::WithSessionId> {
+impl<P> Builder<P, states::WithSession> {
     /// Continues the building chain by setting the payload.
     pub fn with_payload(self, payload: P) -> Builder<P, states::WithPayload> {
         Builder::<P, states::WithPayload> {
             from: self.from,
             to: self.to,
-            sid: self.sid,
+            session: self.session,
             payload: Some(payload),
             sender: self.sender,
             phantom: PhantomData,
@@ -162,7 +162,7 @@ impl<P> Builder<P, states::WithPayload> {
         Builder::<P, states::Ready> {
             from: self.from,
             to: self.to,
-            sid: self.sid,
+            session: self.session,
             payload: self.payload,
             sender: Some(sender.into()),
             phantom: PhantomData,
@@ -176,7 +176,7 @@ impl<P> Builder<P, states::Ready> {
         super::Message {
             from: self.from.unwrap(),
             to: self.to.unwrap(),
-            sid: self.sid.unwrap(),
+            session: self.session.unwrap(),
             sender: self.sender.unwrap(),
             payload: self.payload.unwrap(),
         }
@@ -198,7 +198,7 @@ mod utests {
 
         assert_eq!(From::from(5), msg.from);
         assert_eq!(To::from(10), msg.to);
-        assert_eq!(SessionId::from(50), msg.sid);
+        assert_eq!(Session::from(50), msg.session);
         assert_eq!(SenderId::from(200), msg.sender);
         assert_eq!(5000, msg.payload);
 
@@ -206,7 +206,7 @@ mod utests {
 
         assert_eq!(From::from(5), msg.from);
         assert_eq!(To::from(10), msg.to);
-        assert_eq!(SessionId::from(50), msg.sid);
+        assert_eq!(Session::from(50), msg.session);
         assert_eq!(SenderId::from(300), msg.sender);
         assert_eq!(5000, msg.payload);
     }

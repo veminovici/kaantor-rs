@@ -3,13 +3,13 @@
 mod builder;
 mod from;
 mod sender;
-mod sid;
+mod session;
 mod to;
 
 pub use builder::*;
 pub use from::*;
 pub use sender::*;
-pub use sid::*;
+pub use session::*;
 pub use to::*;
 
 use std::fmt::Debug;
@@ -19,7 +19,7 @@ use std::fmt::Debug;
 pub struct Message<P> {
     pub(crate) from: From,
     pub(crate) to: To,
-    pub(crate) sid: SessionId,
+    pub(crate) session: Session,
     pub(crate) sender: SenderId,
     pub(crate) payload: P,
 }
@@ -32,7 +32,7 @@ where
         write!(
             f,
             "[{}] [{}-->{}] [{}]",
-            &self.sid, &self.from, &self.to, &self.sender
+            &self.session, &self.from, &self.to, &self.sender
         )
     }
 }
@@ -49,8 +49,8 @@ impl<P> Message<P> {
     }
 
     /// Get the `SessionId`
-    pub fn sid(&self) -> &SessionId {
-        &self.sid
+    pub fn session(&self) -> &Session {
+        &self.session
     }
 
     /// Get the `HopId`
