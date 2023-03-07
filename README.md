@@ -26,7 +26,8 @@ INFO  RECV | on 4 from 5 | 1->all | 50 | Forward(999)
 ```
 
 ### Spanning Tree
-A traversal using *propagation and feedback* algorithm. You can read more at [source](./kantor/examples/span_tree_propagation_feedback.rs). The graph is made of the nodes: 1, 2, 3, 4, and 5, and the edges 1-2, 1-3, 2-4, 4-5, and 3 -5
+A traversal using *propagation and feedback* algorithm. You can read more at [source](./kantor/examples/span_tree_propagation_feedback.rs). The graph is made of the nodes: 1, 2, 3, 4, and 5, and the edges 1-2, 1-3, 2-4, 4-5, and 3 -5.
+The result should be:
 
 ```bsh
 RUST_LOG=debug cargo run --example span_tree_propagation_feedback
@@ -60,5 +61,10 @@ SEND | from 3 to node 1 | 3->1 | 50 | BACK CHILD
 RECV | on 1 from 2 | 2->1 | 50 | BACK CHILD
 RECV | on 1 from 3 | 3->1 | 50 | BACk CHILD
 SPANNING TREE NODE: 1 p=Root cs=[2, 3]
-Finished the spanning tree
+
+1
+├─ 2
+│  └─ 4
+└─ 3
+   └─ 5
 ```
