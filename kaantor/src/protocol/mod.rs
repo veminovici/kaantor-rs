@@ -1,13 +1,13 @@
 //! Main functionality for the protocol messages.
 
 mod builder;
-mod fid;
+mod from;
 mod sender;
 mod sid;
 mod to;
 
 pub use builder::*;
-pub use fid::*;
+pub use from::*;
 pub use sender::*;
 pub use sid::*;
 pub use to::*;
@@ -17,7 +17,7 @@ use std::fmt::Debug;
 /// A protocol message
 #[derive(Clone)]
 pub struct Message<P> {
-    pub(crate) fid: FromId,
+    pub(crate) from: From,
     pub(crate) to: To,
     pub(crate) sid: SessionId,
     pub(crate) sender: SenderId,
@@ -32,15 +32,15 @@ where
         write!(
             f,
             "[{}] [{}-->{}] [{}]",
-            &self.sid, &self.fid, &self.to, &self.sender
+            &self.sid, &self.from, &self.to, &self.sender
         )
     }
 }
 
 impl<P> Message<P> {
     /// Get the `FromId`
-    pub fn fid(&self) -> &FromId {
-        &self.fid
+    pub fn from(&self) -> &From {
+        &self.from
     }
 
     /// Get the `ToId`

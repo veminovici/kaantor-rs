@@ -37,7 +37,7 @@ where
     fn info_msg(&self, msg: &PMsg<H::Payload>) {
         let me = self.ph.aid();
         let sender = msg.sender();
-        let fid = msg.fid().clone();
+        let fid = msg.from().clone();
         let to = msg.to().clone();
         let sid = *msg.sid();
         let pld = msg.payload();
@@ -81,7 +81,7 @@ where
         let res = self.ph.receive(&self.proxies, msg);
         match res {
             ContinuationHandler::SendToNode(tid, msg) => {
-                let from = msg.fid();
+                let from = msg.from();
                 let to = msg.to();
                 let sid = *msg.sid();
                 let pld = msg.payload();
@@ -93,7 +93,7 @@ where
                 self.proxies.do_send_to_proxy(&me, &tid, msg)
             }
             ContinuationHandler::SendToAllNodes(msg) => {
-                let from = msg.fid();
+                let from = msg.from();
                 let to = msg.to();
                 let sid = *msg.sid();
                 let pld = msg.payload();
@@ -105,7 +105,7 @@ where
                 self.proxies.do_send_all_except(&me, msg, &[])
             }
             ContinuationHandler::SendToAllNodesExcept(msg, except) => {
-                let from = msg.fid();
+                let from = msg.from();
                 let to = msg.to();
                 let sid = *msg.sid();
                 let pld = msg.payload();
