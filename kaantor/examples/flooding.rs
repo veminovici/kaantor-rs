@@ -1,5 +1,5 @@
 use actix::prelude::*;
-use kantor::{
+use kaantor::{
     protocol::{Builder, SessionId},
     NodeActor, *,
 };
