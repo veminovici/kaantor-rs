@@ -28,7 +28,8 @@ struct Handler {
 }
 
 impl Handler {
-    pub fn build(aid: ActorId) -> Node<NodeActor<Self>, Payload> {
+    /// Builds a handler
+    fn build(aid: ActorId) -> Node<NodeActor<Self>, Payload> {
         NodeActor::build(Self {
             aid,
             parent: Parent::NoParent,
@@ -37,19 +38,34 @@ impl Handler {
         })
     }
 
-    /// The node just received a START. It marks itself as ROOT, sends a GO message to all its
+    #[inline]
+    fn debug_spanning_tree(&self) {
+        info!(
+            "SPANNING TREE NODE: {} p={:?} cs={:?}",
+            self.aid, self.parent, self.children
+        );
+    }
+
+    /// The node received a START. It marks itself as ROOT, sends a GO message to all its
     /// neighbours while expecting back a number of messages equal with the number of neighbours.
-    fn handle_start(&mut self, sid: SessionId, ns: impl Iterator<Item = ActorId>) -> ContinuationHandler<Payload> 
-    {
+    fn handle_start(
+        &mut self,
+        msg: protocol::Message<Payload>,
+        ns: impl Iterator<Item = ActorId>,
+    ) -> ContinuationHandler<Payload> {
         self.parent = Parent::Root;
         self.exp_messages = ns.count();
+        let sid = msg.sid().clone();
 
         info!("{} em={} p={:?}", self.aid, self.exp_messages, self.parent);
-
         self.send_go_to_all_except(sid, vec![])
     }
 
-    fn handle_go(&mut self, msg: protocol::Message<Payload>, ns: impl Iterator<Item = ActorId>) -> ContinuationHandler<Payload> {
+    fn handle_go(
+        &mut self,
+        msg: protocol::Message<Payload>,
+        ns: impl Iterator<Item = ActorId>,
+    ) -> ContinuationHandler<Payload> {
         let sid = msg.sid();
 
         match self.parent {
@@ -65,56 +81,88 @@ impl Handler {
                     // a GO message to all the neighbours except the one that
                     // sent us the GO.
                     self.send_go_to_all_except(sid.clone(), vec![hid])
-
                 } else {
                     // Finalize the spanning tree search for this node.
                     // Send back_child to the node that sent us the GO meesage.
 
-                    info!("SPANNING TREE NODE: {} p={:?} cs={:?}", self.aid, self.parent, self.children);
-                    info!("Back_Child (0) to_actor={hid} send_to_node={hid}");
+                    self.debug_spanning_tree();
+                    self.send_back_child_to_node(*sid, hid)
+                }
+            }
+            Parent::Root => {
+                let hid = msg.hid().aid();
+                self.send_back_no_child_to_node(*sid, hid)
+            }
+            Parent::Parent(_) => {
+                let hid = msg.hid().aid();
+                self.send_back_no_child_to_node(*sid, hid)
+            }
+        }
+    }
+
+    #[inline]
+    fn handle_back_no_child(
+        &mut self,
+        msg: protocol::Message<Payload>,
+        ns: impl Iterator<Item = ActorId>,
+    ) -> ContinuationHandler<Payload> {
+        self.handle_back(msg, ns)
+    }
+
+    #[inline]
+    fn handle_back_child(
+        &mut self,
+        msg: protocol::Message<Payload>,
+        ns: impl Iterator<Item = ActorId>,
+    ) -> ContinuationHandler<Payload> {
+        self.children.push(msg.hid().aid()); // diff
+        self.handle_back(msg, ns)
+    }
+
+    fn handle_back(
+        &mut self,
+        msg: protocol::Message<Payload>,
+        _ns: impl Iterator<Item = ActorId>,
+    ) -> ContinuationHandler<Payload> {
+        self.exp_messages -= 1;
+        let sid = msg.sid();
+
+        info!("{} em={} p={:?}", self.aid, self.exp_messages, self.parent);
+
+        if self.exp_messages == 0 {
+            self.debug_spanning_tree();
+
+            match self.parent {
+                Parent::NoParent => panic!("We shoud not be here"),
+                Parent::Root => {
+                    info!("Finished the spanning tree");
+                    ContinuationHandler::Done
+                }
+                Parent::Parent(pid) => {
+                    // Finish the spanning tree discovery for this node.
+                    // Send back a back_child to the parent node.
+                    info!("Back_Child to_actor={pid} send_to_node={pid}");
 
                     let msg = Builder::with_from_actor(self.aid)
-                        .with_to_actor(hid)
+                        .with_to_actor(pid)
                         .with_session(sid.clone())
                         .with_payload(Payload::BackChild)
                         .with_hid(self.aid)
                         .build();
 
-                    ContinuationHandler::SendToNode(hid, msg)
+                    ContinuationHandler::SendToNode(pid, msg)
                 }
             }
-            Parent::Root => {
-                let hid = msg.hid().aid();
-
-                info!("{} em={} p={:?}", self.aid, self.exp_messages, self.parent);
-
-                let msg = Builder::with_from_actor(self.aid)
-                    .with_to_actor(hid)
-                    .with_session(sid.clone())
-                    .with_payload(Payload::BackNoChild)
-                    .with_hid(self.aid)
-                    .build();
-
-                ContinuationHandler::SendToNode(hid, msg)
-            }
-            Parent::Parent(_) => {
-                let hid = msg.hid().aid();
-
-                info!("{} em={} p={:?}", self.aid, self.exp_messages, self.parent);
-
-                let msg = Builder::with_from_actor(self.aid)
-                    .with_to_actor(hid)
-                    .with_session(sid.clone())
-                    .with_payload(Payload::BackNoChild)
-                    .with_hid(self.aid)
-                    .build();
-
-                ContinuationHandler::SendToNode(hid, msg)
-            }
+        } else {
+            ContinuationHandler::Done
         }
     }
 
-    fn send_go_to_all_except(&self, sid: SessionId, except: Vec<ActorId>) -> ContinuationHandler<Payload> {
+    fn send_go_to_all_except(
+        &self,
+        sid: SessionId,
+        except: Vec<ActorId>,
+    ) -> ContinuationHandler<Payload> {
         let msg = Builder::with_from_actor(self.aid)
             .with_to_all_actors()
             .with_session(sid)
@@ -123,6 +171,32 @@ impl Handler {
             .build();
 
         ContinuationHandler::SendToAllNodesExcept(msg, except)
+    }
+
+    fn send_back_no_child_to_node(&self, sid: SessionId, hid: ActorId) -> ContinuationHandler<Payload> {
+        info!("{} em={} p={:?}", self.aid, self.exp_messages, self.parent);
+
+        let msg = Builder::with_from_actor(self.aid)
+        .with_to_actor(hid)
+        .with_session(sid)
+        .with_payload(Payload::BackNoChild)
+        .with_hid(self.aid)
+        .build();
+
+        ContinuationHandler::SendToNode(hid, msg)
+    }
+
+    fn send_back_child_to_node(&self, sid: SessionId, hid: ActorId) -> ContinuationHandler<Payload> {
+        info!("Back_Child (0) to_actor={hid} send_to_node={hid}");
+
+        let msg = Builder::with_from_actor(self.aid)
+            .with_to_actor(hid)
+            .with_session(sid)
+            .with_payload(Payload::BackChild)
+            .with_hid(self.aid)
+            .build();
+
+        ContinuationHandler::SendToNode(hid, msg)
     }
 }
 
@@ -139,79 +213,10 @@ impl ProtocolHandler for Handler {
         msg: protocol::Message<Self::Payload>,
     ) -> ContinuationHandler<Self::Payload> {
         match msg.payload() {
-            &Payload::Start => self.handle_start(*msg.sid(), proxies.aids()),
+            &Payload::Start => self.handle_start(msg, proxies.aids()),
             &Payload::Go => self.handle_go(msg, proxies.aids()),
-            &Payload::BackNoChild => {
-                self.exp_messages -= 1;
-                let sid = msg.sid();
-
-                info!("{} em={} p={:?}", self.aid, self.exp_messages, self.parent);
-
-                if self.exp_messages == 0 {
-                    info!("SPANNING TREE NODE: {} p={:?} cs={:?}", self.aid, self.parent, self.children);
-
-                    match self.parent {
-                        Parent::NoParent => panic!("We shoud not be here"),
-                        Parent::Root => {
-                            info!("Finished the spanning tree");
-                            ContinuationHandler::Done
-                        }
-                        Parent::Parent(pid) => {
-
-                            // Finish the spanning tree discovery for this node.
-                            // Send back a back_child to the parent node.
-                            info!("Back_Child (1) to_actor={pid} send_to_node={pid}");
-
-                            let msg = Builder::with_from_actor(self.aid)
-                                .with_to_actor(pid)
-                                .with_session(sid.clone())
-                                .with_payload(Payload::BackChild)
-                                .with_hid(self.aid)
-                                .build();
-
-                            ContinuationHandler::SendToNode(pid, msg)
-                        }
-                    }
-                } else {
-                    ContinuationHandler::Done
-                }
-            }
-            &Payload::BackChild => {
-                self.exp_messages -= 1;
-                self.children.push(msg.hid().aid());
-                let sid = msg.sid();
-
-                info!("{} em={}", self.aid, self.exp_messages);
-
-                if self.exp_messages == 0 {
-
-                    info!("SPANNING TREE NODE: {} p={:?} cs={:?}", self.aid, self.parent, self.children);
-
-                    match self.parent {
-                        Parent::NoParent => panic!("We shoud not be here"),
-                        Parent::Root => {
-                            info!("Finished the spanning tree");
-                            ContinuationHandler::Done
-                        }
-                        Parent::Parent(pid) => {
-                            info!("Back_Child (2) to_actor={pid} send_to_node={pid}");
-
-                            // Finish the spanning tree discovery for this node.
-                            // Send back a back_child to the parent node.
-                            let msg = Builder::with_from_actor(self.aid)
-                                .with_to_actor(pid)
-                                .with_session(sid.clone())
-                                .with_payload(Payload::BackChild)
-                                .with_hid(self.aid)
-                                .build();
-
-                            ContinuationHandler::SendToNode(pid, msg)
-                        }
-                    }
-                } else {
-                    ContinuationHandler::Done
-                }
-            }
+            &Payload::BackNoChild => self.handle_back_no_child(msg, proxies.aids()),
+            &Payload::BackChild => self.handle_back_child(msg, proxies.aids()),
         }
     }
 }
