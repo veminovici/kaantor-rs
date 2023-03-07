@@ -4,7 +4,9 @@ use kaantor::{
     NodeActor, *,
 };
 use log::{debug, info};
-use std::fmt::Debug;
+use std::fmt::{format, Debug};
+
+use ptree::*;
 
 #[derive(Clone)]
 struct STNode {
@@ -65,11 +67,57 @@ impl Handler {
     }
 
     #[inline]
-    fn debug_spanning_tree(&self) {
+    fn debug_spanning_node(&self) {
         info!(
             "SPANNING TREE NODE: {} p={:?} cs={:?}",
             self.aid, self.parent, self.children
         );
+    }
+
+    fn build_child<'a>(&'a self, tb: &'a mut TreeBuilder, nid: ActorId) -> &'a mut TreeBuilder {
+        self.nodes
+            .iter()
+            .find(|n| n.root == nid)
+            .map(|n| {
+                if n.children.len() == 0 {
+                    tb.add_empty_child(format!("{}", nid))
+                } else {
+                    let tb = tb.begin_child(format!("{}", nid));
+                    let tb = n
+                        .children
+                        .iter()
+                        .fold(tb, |tb, cid| self.build_child(tb, *cid));
+                    // tb.add_empty_child(format!("{}", nid))
+                    tb.end_child()
+                }
+            })
+            .unwrap()
+    }
+
+    fn debug_spanning_tree(&self) {
+        // info!("TREE: {:?}", self.nodes);
+        let nd = self.nodes.iter().find(|n| n.root == self.aid).unwrap();
+        let mut tb = TreeBuilder::new(format!("{}", nd.root));
+        let tb = nd
+            .children
+            .iter()
+            .fold(&mut tb, |tb, nid| self.build_child(tb, *nid))
+            .build();
+        // let tb = if nd.children.len() == 0 {
+        //     tb.build()
+        // } else {
+        //     tb.build()
+        // };
+
+        // let tree = TreeBuilder::new("tree".to_string())
+        // .begin_child("branch".to_string())
+        //     .add_empty_child("leaf".to_string())
+        // .end_child()
+        // .add_empty_child("empty branch".to_string())
+        // .build();
+
+        // Print out the tree using default formatting
+        let _ = print_tree(&tb).unwrap();
     }
 
     /// The node received a START. It marks itself as ROOT, sends a GO message to all its
@@ -83,7 +131,6 @@ impl Handler {
         self.exp_messages = ns.count();
         let sid = msg.sid().clone();
 
-        // info!("{} em={} p={:?}", self.aid, self.exp_messages, self.parent);
         self.send_go_to_all_except(sid, vec![])
     }
 
@@ -100,8 +147,6 @@ impl Handler {
                 self.exp_messages = ns.count() - 1;
                 let hid = msg.hid().aid();
 
-                // info!("{} em={} p={:?}", self.aid, self.exp_messages, self.parent);
-
                 if self.exp_messages != 0 {
                     // Continue the discovery of the spanning tree by sending
                     // a GO message to all the neighbours except the one that
@@ -110,7 +155,7 @@ impl Handler {
                 } else {
                     // Finalize the spanning tree search for this node.
                     // Send back_child to the node that sent us the GO meesage.
-                    self.debug_spanning_tree();
+                    self.debug_spanning_node();
                     self.send_back_child_to_node(hid, *sid)
                 }
             }
@@ -158,7 +203,7 @@ impl Handler {
         // info!("{} em={} p={:?}", self.aid, self.exp_messages, self.parent);
 
         if self.exp_messages == 0 {
-            self.debug_spanning_tree();
+            self.debug_spanning_node();
 
             match self.parent {
                 Parent::NoParent => panic!("We shoud not be here"),
@@ -171,7 +216,7 @@ impl Handler {
                     self.nodes.extend(vec![node]);
 
                     info!("Finished the spanning tree");
-                    info!("TREE: {:?}", self.nodes);
+                    self.debug_spanning_tree();
 
                     ContinuationHandler::Done
                 }

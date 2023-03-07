@@ -12,3 +12,6 @@ anyhow = { workspace = true }
 env_logger = { workspace = true }
 futures = "0.3.26"
 log = { workspace = true }
+
+[dev-dependencies]
+ptree = "0.4.0"
