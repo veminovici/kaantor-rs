@@ -57,7 +57,7 @@ impl Handler {
         self.exp_messages = ns.count();
         let sid = msg.sid().clone();
 
-        info!("{} em={} p={:?}", self.aid, self.exp_messages, self.parent);
+        // info!("{} em={} p={:?}", self.aid, self.exp_messages, self.parent);
         self.send_go_to_all_except(sid, vec![])
     }
 
@@ -74,7 +74,7 @@ impl Handler {
                 self.exp_messages = ns.count() - 1;
                 let hid = msg.hid().aid();
 
-                info!("{} em={} p={:?}", self.aid, self.exp_messages, self.parent);
+                // info!("{} em={} p={:?}", self.aid, self.exp_messages, self.parent);
 
                 if self.exp_messages != 0 {
                     // Continue the discovery of the spanning tree by sending
@@ -84,7 +84,6 @@ impl Handler {
                 } else {
                     // Finalize the spanning tree search for this node.
                     // Send back_child to the node that sent us the GO meesage.
-
                     self.debug_spanning_tree();
                     self.send_back_child_to_node(*sid, hid)
                 }
@@ -127,7 +126,7 @@ impl Handler {
         self.exp_messages -= 1;
         let sid = msg.sid();
 
-        info!("{} em={} p={:?}", self.aid, self.exp_messages, self.parent);
+        // info!("{} em={} p={:?}", self.aid, self.exp_messages, self.parent);
 
         if self.exp_messages == 0 {
             self.debug_spanning_tree();
@@ -141,8 +140,7 @@ impl Handler {
                 Parent::Parent(pid) => {
                     // Finish the spanning tree discovery for this node.
                     // Send back a back_child to the parent node.
-                    info!("Back_Child to_actor={pid} send_to_node={pid}");
-
+                    // info!("Back_Child to_actor={pid} send_to_node={pid}");
                     let msg = Builder::with_from_actor(self.aid)
                         .with_to_actor(pid)
                         .with_session(sid.clone())
@@ -174,7 +172,7 @@ impl Handler {
     }
 
     fn send_back_no_child_to_node(&self, sid: SessionId, hid: ActorId) -> ContinuationHandler<Payload> {
-        info!("{} em={} p={:?}", self.aid, self.exp_messages, self.parent);
+        // info!("{} em={} p={:?}", self.aid, self.exp_messages, self.parent);
 
         let msg = Builder::with_from_actor(self.aid)
         .with_to_actor(hid)
@@ -187,7 +185,7 @@ impl Handler {
     }
 
     fn send_back_child_to_node(&self, sid: SessionId, hid: ActorId) -> ContinuationHandler<Payload> {
-        info!("Back_Child (0) to_actor={hid} send_to_node={hid}");
+        // info!("Back_Child (0) to_actor={hid} send_to_node={hid}");
 
         let msg = Builder::with_from_actor(self.aid)
             .with_to_actor(hid)
