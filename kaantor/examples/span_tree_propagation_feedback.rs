@@ -4,7 +4,19 @@ use kaantor::{
     NodeActor, *,
 };
 use log::{debug, info};
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
+
+#[derive(Clone)]
+struct STNode {
+    root: ActorId,
+    children: Vec<ActorId>
+}
+
+impl Display for STNode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "{}->{:?}", self.root, self.children)
+    }
+}
 
 #[derive(Clone)]
 enum Payload {
@@ -97,7 +109,7 @@ impl Handler {
                     // Finalize the spanning tree search for this node.
                     // Send back_child to the node that sent us the GO meesage.
                     self.debug_spanning_tree();
-                    self.send_back_child_to_node(*sid, hid)
+                    self.send_back_child_to_node(hid, *sid)
                 }
             }
             Parent::Root => {
@@ -150,17 +162,7 @@ impl Handler {
                     ContinuationHandler::Done
                 }
                 Parent::Parent(pid) => {
-                    // Finish the spanning tree discovery for this node.
-                    // Send back a back_child to the parent node.
-                    // info!("Back_Child to_actor={pid} send_to_node={pid}");
-                    let msg = Builder::with_from_actor(self.aid)
-                        .with_to_actor(pid)
-                        .with_session(sid.clone())
-                        .with_payload(Payload::BackChild)
-                        .with_hid(self.aid)
-                        .build();
-
-                    ContinuationHandler::SendToNode(pid, msg)
+                    self.send_back_child_to_node(pid, *sid)
                 }
             }
         } else {
@@ -202,19 +204,19 @@ impl Handler {
 
     fn send_back_child_to_node(
         &self,
+        pid: ActorId,
         sid: SessionId,
-        hid: ActorId,
     ) -> ContinuationHandler<Payload> {
         // info!("Back_Child (0) to_actor={hid} send_to_node={hid}");
 
         let msg = Builder::with_from_actor(self.aid)
-            .with_to_actor(hid)
+            .with_to_actor(pid)
             .with_session(sid)
             .with_payload(Payload::BackChild)
             .with_hid(self.aid)
             .build();
 
-        ContinuationHandler::SendToNode(hid, msg)
+        ContinuationHandler::SendToNode(pid, msg)
     }
 }
 
