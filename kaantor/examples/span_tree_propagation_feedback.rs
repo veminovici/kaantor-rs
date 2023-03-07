@@ -4,15 +4,15 @@ use kaantor::{
     NodeActor, *,
 };
 use log::{debug, info};
-use std::fmt::{Debug, Display};
+use std::fmt::Debug;
 
 #[derive(Clone)]
 struct STNode {
     root: ActorId,
-    children: Vec<ActorId>
+    children: Vec<ActorId>,
 }
 
-impl Display for STNode {
+impl Debug for STNode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "{}->{:?}", self.root, self.children)
     }
@@ -22,7 +22,7 @@ impl Display for STNode {
 enum Payload {
     Start,
     Go,
-    BackChild,
+    BackChild(Vec<STNode>),
     BackNoChild,
 }
 
@@ -31,7 +31,7 @@ impl Debug for Payload {
         match self {
             Self::Start => write!(f, "START"),
             Self::Go => write!(f, "GO"),
-            Self::BackChild => write!(f, "BACK CHILD"),
+            Self::BackChild(ns) => write!(f, "BACK CHILD | {:?}", ns),
             Self::BackNoChild => write!(f, "BACK NOT A CHILD"),
         }
     }
@@ -49,6 +49,7 @@ struct Handler {
     parent: Parent,
     children: Vec<ActorId>,
     exp_messages: usize,
+    nodes: Vec<STNode>,
 }
 
 impl Handler {
@@ -59,6 +60,7 @@ impl Handler {
             parent: Parent::NoParent,
             children: vec![],
             exp_messages: 0,
+            nodes: vec![],
         })
     }
 
@@ -74,7 +76,7 @@ impl Handler {
     /// neighbours while expecting back a number of messages equal with the number of neighbours.
     fn handle_start(
         &mut self,
-        msg: protocol::Message<Payload>,
+        msg: &protocol::Message<Payload>,
         ns: impl Iterator<Item = ActorId>,
     ) -> ContinuationHandler<Payload> {
         self.parent = Parent::Root;
@@ -87,7 +89,7 @@ impl Handler {
 
     fn handle_go(
         &mut self,
-        msg: protocol::Message<Payload>,
+        msg: &protocol::Message<Payload>,
         ns: impl Iterator<Item = ActorId>,
     ) -> ContinuationHandler<Payload> {
         let sid = msg.sid();
@@ -126,26 +128,29 @@ impl Handler {
     #[inline]
     fn handle_back_no_child(
         &mut self,
-        msg: protocol::Message<Payload>,
-        ns: impl Iterator<Item = ActorId>,
+        msg: &protocol::Message<Payload>,
+        proxies: impl Iterator<Item = ActorId>,
     ) -> ContinuationHandler<Payload> {
-        self.handle_back(msg, ns)
+        self.handle_back(msg, proxies)
     }
 
     #[inline]
     fn handle_back_child(
         &mut self,
-        msg: protocol::Message<Payload>,
-        ns: impl Iterator<Item = ActorId>,
+        msg: &protocol::Message<Payload>,
+        ns: Vec<STNode>,
+        proxies: impl Iterator<Item = ActorId>,
     ) -> ContinuationHandler<Payload> {
-        self.children.push(msg.hid().aid()); // diff
-        self.handle_back(msg, ns)
+        self.children.push(msg.hid().aid());
+        self.nodes.extend(ns);
+
+        self.handle_back(msg, proxies)
     }
 
     fn handle_back(
         &mut self,
-        msg: protocol::Message<Payload>,
-        _ns: impl Iterator<Item = ActorId>,
+        msg: &protocol::Message<Payload>,
+        _proxies: impl Iterator<Item = ActorId>,
     ) -> ContinuationHandler<Payload> {
         self.exp_messages -= 1;
         let sid = msg.sid();
@@ -158,12 +163,19 @@ impl Handler {
             match self.parent {
                 Parent::NoParent => panic!("We shoud not be here"),
                 Parent::Root => {
+                    let node = STNode {
+                        root: self.aid,
+                        children: self.children.clone(),
+                    };
+
+                    self.nodes.extend(vec![node]);
+
                     info!("Finished the spanning tree");
+                    info!("TREE: {:?}", self.nodes);
+
                     ContinuationHandler::Done
                 }
-                Parent::Parent(pid) => {
-                    self.send_back_child_to_node(pid, *sid)
-                }
+                Parent::Parent(pid) => self.send_back_child_to_node(pid, *sid),
             }
         } else {
             ContinuationHandler::Done
@@ -208,11 +220,18 @@ impl Handler {
         sid: SessionId,
     ) -> ContinuationHandler<Payload> {
         // info!("Back_Child (0) to_actor={hid} send_to_node={hid}");
+        let node = STNode {
+            root: self.aid,
+            children: self.children.clone(),
+        };
+
+        let mut ns = self.nodes.clone();
+        ns.extend(vec![node]);
 
         let msg = Builder::with_from_actor(self.aid)
             .with_to_actor(pid)
             .with_session(sid)
-            .with_payload(Payload::BackChild)
+            .with_payload(Payload::BackChild(ns))
             .with_hid(self.aid)
             .build();
 
@@ -232,11 +251,11 @@ impl ProtocolHandler for Handler {
         proxies: &Proxies<Self::Payload>,
         msg: protocol::Message<Self::Payload>,
     ) -> ContinuationHandler<Self::Payload> {
-        match msg.payload() {
-            &Payload::Start => self.handle_start(msg, proxies.aids()),
-            &Payload::Go => self.handle_go(msg, proxies.aids()),
-            &Payload::BackNoChild => self.handle_back_no_child(msg, proxies.aids()),
-            &Payload::BackChild => self.handle_back_child(msg, proxies.aids()),
+        match &msg.payload() {
+            &Payload::Start => self.handle_start(&msg, proxies.aids()),
+            &Payload::Go => self.handle_go(&msg, proxies.aids()),
+            &Payload::BackNoChild => self.handle_back_no_child(&msg, proxies.aids()),
+            &Payload::BackChild(ns) => self.handle_back_child(&msg, ns.clone(), proxies.aids()),
         }
     }
 }
