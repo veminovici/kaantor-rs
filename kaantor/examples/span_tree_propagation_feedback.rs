@@ -95,28 +95,8 @@ impl Handler {
     }
 
     fn debug_spanning_tree(&self) {
-        // info!("TREE: {:?}", self.nodes);
-        let nd = self.nodes.iter().find(|n| n.root == self.aid).unwrap();
-        let mut tb = TreeBuilder::new(format!("{}", nd.root));
-        let tb = nd
-            .children
-            .iter()
-            .fold(&mut tb, |tb, nid| self.build_child(tb, *nid))
-            .build();
-        // let tb = if nd.children.len() == 0 {
-        //     tb.build()
-        // } else {
-        //     tb.build()
-        // };
-
-        // let tree = TreeBuilder::new("tree".to_string())
-        // .begin_child("branch".to_string())
-        //     .add_empty_child("leaf".to_string())
-        // .end_child()
-        // .add_empty_child("empty branch".to_string())
-        // .build();
-
-        // Print out the tree using default formatting
+        let mut tb = TreeBuilder::new("SPANNING-TREE".to_string());
+        let tb = self.build_child(&mut tb, self.aid).build();
         let _ = print_tree(&tb).unwrap();
     }
 
