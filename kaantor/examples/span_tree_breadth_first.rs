@@ -23,7 +23,7 @@ impl Debug for STNode {
 #[derive(Clone)]
 enum Payload {
     Start,
-    Go,
+    Go(usize),
     BackChild(Vec<STNode>),
     BackNoChild,
 }
@@ -32,7 +32,7 @@ impl Debug for Payload {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Start => write!(f, "START"),
-            Self::Go => write!(f, "GO"),
+            Self::Go(l) => write!(f, "GO {}", l),
             Self::BackChild(ns) => write!(f, "BACK CHILD | {:?}", ns),
             Self::BackNoChild => write!(f, "BACK NOT A CHILD"),
         }
@@ -52,6 +52,7 @@ struct Handler {
     children: Vec<ActorId>,
     exp_messages: usize,
     nodes: Vec<STNode>,
+    level: usize,
 }
 
 impl Handler {
@@ -63,14 +64,15 @@ impl Handler {
             children: vec![],
             exp_messages: 0,
             nodes: vec![],
+            level: 0,
         })
     }
 
     #[inline]
     fn debug_spanning_node(&self) {
         info!(
-            "SPANNING TREE NODE: {} p={:?} cs={:?}",
-            self.aid, self.parent, self.children
+            "SPANNING TREE NODE: {} p={:?} cs={:?} lvl={}",
+            self.aid, self.parent, self.children, self.level
         );
     }
 
@@ -111,11 +113,12 @@ impl Handler {
         self.exp_messages = ns.count();
         let session = msg.session().clone();
 
-        self.send_go_to_all_except(session, vec![])
+        self.send_go_to_all_except(session, 0, vec![])
     }
 
     fn handle_go(
         &mut self,
+        level: usize,
         msg: &protocol::Message<Payload>,
         ns: impl Iterator<Item = ActorId>,
     ) -> ContinuationHandler<Payload> {
@@ -126,12 +129,13 @@ impl Handler {
                 let sender = msg.sender().as_aid();
                 self.parent = Parent::Parent(sender);
                 self.exp_messages = ns.count() - 1;
+                self.level = level + 1;
 
                 if self.exp_messages != 0 {
                     // Continue the discovery of the spanning tree by sending
                     // a GO message to all the neighbours except the one that
                     // sent us the GO.
-                    self.send_go_to_all_except(session.clone(), vec![sender])
+                    self.send_go_to_all_except(session.clone(), level + 1, vec![sender])
                 } else {
                     // Finalize the spanning tree search for this node.
                     // Send back_child to the node that sent us the GO meesage.
@@ -143,9 +147,21 @@ impl Handler {
                 let sender = msg.sender().as_aid();
                 self.send_back_no_child_to_node(*session, sender)
             }
-            Parent::Parent(_) => {
-                let sender = msg.sender().as_aid();
-                self.send_back_no_child_to_node(*session, sender)
+            Parent::Parent(_parent) => {
+                if self.level > level + 1 {
+                    let sender = msg.sender().as_aid();
+                    self.parent = Parent::Parent(sender);
+                    self.exp_messages = ns.count() - 1;
+                    self.level = level + 1;
+
+                    // Continue the discovery of the spanning tree by sending
+                    // a GO message to all the neighbours except the one that
+                    // sent us the GO.
+                    self.send_go_to_all_except(session.clone(), level + 1, vec![sender])    
+                } else {
+                    let sender = msg.sender().as_aid();
+                    self.send_back_no_child_to_node(*session, sender)    
+                }
             }
         }
     }
@@ -211,12 +227,13 @@ impl Handler {
     fn send_go_to_all_except(
         &self,
         session: Session,
+        level: usize,
         except: Vec<ActorId>,
     ) -> ContinuationHandler<Payload> {
         let msg = Builder::with_from_actor(self.aid)
             .with_to_all_actors()
             .with_session(session)
-            .with_payload(Payload::Go)
+            .with_payload(Payload::Go(level))
             .with_sender(self.aid)
             .build();
 
@@ -277,7 +294,7 @@ impl ProtocolHandler for Handler {
     ) -> ContinuationHandler<Self::Payload> {
         match &msg.payload() {
             &Payload::Start => self.handle_start(&msg, proxies.aids()),
-            &Payload::Go => self.handle_go(&msg, proxies.aids()),
+            &Payload::Go(level) => self.handle_go(*level, &msg, proxies.aids()),
             &Payload::BackNoChild => self.handle_back_no_child(&msg, proxies.aids()),
             &Payload::BackChild(ns) => self.handle_back_child(&msg, ns.clone(), proxies.aids()),
         }
@@ -286,7 +303,7 @@ impl ProtocolHandler for Handler {
 
 fn main() {
     env_logger::init();
-    debug!("Starting the example SPANNING TREE");
+    debug!("Starting the example FLOODING");
 
     let sys = System::new();
     sys.block_on(async {
@@ -320,3 +337,4 @@ fn main() {
 
     println!("Finished the test");
 }
+
