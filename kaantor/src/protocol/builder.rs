@@ -24,7 +24,7 @@ pub struct Builder<P, S = states::New> {
     fid: Option<FromId>,
     tid: Option<ToId>,
     sid: Option<SessionId>,
-    hid: Option<HopId>,
+    sender: Option<SenderId>,
     payload: Option<P>,
     phantom: PhantomData<S>,
 }
@@ -42,7 +42,7 @@ impl<P> Builder<P, states::New> {
             tid: None,
             sid: None,
             payload: None,
-            hid: None,
+            sender: None,
             phantom: PhantomData,
         }
     }
@@ -55,7 +55,7 @@ impl<P> Builder<P, states::New> {
             tid: Some(msg.tid),
             sid: Some(msg.sid),
             payload: Some(msg.payload),
-            hid: None,
+            sender: None,
             phantom: PhantomData,
         }
     }
@@ -67,7 +67,7 @@ impl<P> Builder<P, states::New> {
             tid: None,
             sid: None,
             payload: None,
-            hid: None,
+            sender: None,
             phantom: PhantomData,
         }
     }
@@ -79,7 +79,7 @@ impl<P> Builder<P, states::New> {
             tid: None,
             sid: None,
             payload: None,
-            hid: None,
+            sender: None,
             phantom: PhantomData,
         }
     }
@@ -96,7 +96,7 @@ impl<P> Builder<P, states::New> {
             tid: Some(tid),
             sid: Some(sid),
             payload: None,
-            hid: None,
+            sender: None,
             phantom: PhantomData,
         }
     }
@@ -110,7 +110,7 @@ impl<P> Builder<P, states::WithFromId> {
             tid: Some(ToId::Actor(aid)),
             sid: self.sid,
             payload: self.payload,
-            hid: self.hid,
+            sender: self.sender,
             phantom: PhantomData,
         }
     }
@@ -122,7 +122,7 @@ impl<P> Builder<P, states::WithFromId> {
             tid: Some(ToId::All),
             sid: self.sid,
             payload: self.payload,
-            hid: self.hid,
+            sender: self.sender,
             phantom: PhantomData,
         }
     }
@@ -136,7 +136,7 @@ impl<P> Builder<P, states::WithToId> {
             tid: self.tid,
             sid: Some(sid),
             payload: self.payload,
-            hid: self.hid,
+            sender: self.sender,
             phantom: PhantomData,
         }
     }
@@ -150,7 +150,7 @@ impl<P> Builder<P, states::WithSessionId> {
             tid: self.tid,
             sid: self.sid,
             payload: Some(payload),
-            hid: self.hid,
+            sender: self.sender,
             phantom: PhantomData,
         }
     }
@@ -158,13 +158,13 @@ impl<P> Builder<P, states::WithSessionId> {
 
 impl<P> Builder<P, states::WithPayload> {
     /// Continues the building chain by setting the `HopId` value.
-    pub fn with_hid(self, hid: ActorId) -> Builder<P, states::Ready> {
+    pub fn with_sender(self, sender: ActorId) -> Builder<P, states::Ready> {
         Builder::<P, states::Ready> {
             fid: self.fid,
             tid: self.tid,
             sid: self.sid,
             payload: self.payload,
-            hid: Some(hid.into()),
+            sender: Some(sender.into()),
             phantom: PhantomData,
         }
     }
@@ -177,7 +177,7 @@ impl<P> Builder<P, states::Ready> {
             fid: self.fid.unwrap(),
             tid: self.tid.unwrap(),
             sid: self.sid.unwrap(),
-            hid: self.hid.unwrap(),
+            sender: self.sender.unwrap(),
             payload: self.payload.unwrap(),
         }
     }
@@ -193,21 +193,21 @@ mod utests {
             .with_to_actor(10.into())
             .with_session(50.into())
             .with_payload(5000)
-            .with_hid(200.into())
+            .with_sender(200.into())
             .build();
 
         assert_eq!(FromId::from(5), msg.fid);
         assert_eq!(ToId::from(10), msg.tid);
         assert_eq!(SessionId::from(50), msg.sid);
-        assert_eq!(HopId::from(200), msg.hid);
+        assert_eq!(SenderId::from(200), msg.sender);
         assert_eq!(5000, msg.payload);
 
-        let msg = Builder::with_message(msg).with_hid(300.into()).build();
+        let msg = Builder::with_message(msg).with_sender(300.into()).build();
 
         assert_eq!(FromId::from(5), msg.fid);
         assert_eq!(ToId::from(10), msg.tid);
         assert_eq!(SessionId::from(50), msg.sid);
-        assert_eq!(HopId::from(300), msg.hid);
+        assert_eq!(SenderId::from(300), msg.sender);
         assert_eq!(5000, msg.payload);
     }
 }

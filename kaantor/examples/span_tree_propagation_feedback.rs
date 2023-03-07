@@ -123,29 +123,29 @@ impl Handler {
 
         match self.parent {
             Parent::NoParent => {
-                self.parent = Parent::Parent(msg.hid().aid());
+                let sender = msg.sender().as_aid();
+                self.parent = Parent::Parent(sender);
                 self.exp_messages = ns.count() - 1;
-                let hid = msg.hid().aid();
 
                 if self.exp_messages != 0 {
                     // Continue the discovery of the spanning tree by sending
                     // a GO message to all the neighbours except the one that
                     // sent us the GO.
-                    self.send_go_to_all_except(sid.clone(), vec![hid])
+                    self.send_go_to_all_except(sid.clone(), vec![sender])
                 } else {
                     // Finalize the spanning tree search for this node.
                     // Send back_child to the node that sent us the GO meesage.
                     self.debug_spanning_node();
-                    self.send_back_child_to_node(hid, *sid)
+                    self.send_back_child_to_node(sender, *sid)
                 }
             }
             Parent::Root => {
-                let hid = msg.hid().aid();
-                self.send_back_no_child_to_node(*sid, hid)
+                let sender = msg.sender().as_aid();
+                self.send_back_no_child_to_node(*sid, sender)
             }
             Parent::Parent(_) => {
-                let hid = msg.hid().aid();
-                self.send_back_no_child_to_node(*sid, hid)
+                let sender = msg.sender().as_aid();
+                self.send_back_no_child_to_node(*sid, sender)
             }
         }
     }
@@ -166,7 +166,8 @@ impl Handler {
         ns: Vec<STNode>,
         proxies: impl Iterator<Item = ActorId>,
     ) -> ContinuationHandler<Payload> {
-        self.children.push(msg.hid().aid());
+        let sender = msg.sender().as_aid();
+        self.children.push(sender);
         self.nodes.extend(ns);
 
         self.handle_back(msg, proxies)
@@ -216,7 +217,7 @@ impl Handler {
             .with_to_all_actors()
             .with_session(sid)
             .with_payload(Payload::Go)
-            .with_hid(self.aid)
+            .with_sender(self.aid)
             .build();
 
         ContinuationHandler::SendToAllNodesExcept(msg, except)
@@ -225,18 +226,16 @@ impl Handler {
     fn send_back_no_child_to_node(
         &self,
         sid: SessionId,
-        hid: ActorId,
+        sender: ActorId,
     ) -> ContinuationHandler<Payload> {
-        // info!("{} em={} p={:?}", self.aid, self.exp_messages, self.parent);
-
         let msg = Builder::with_from_actor(self.aid)
-            .with_to_actor(hid)
+            .with_to_actor(sender)
             .with_session(sid)
             .with_payload(Payload::BackNoChild)
-            .with_hid(self.aid)
+            .with_sender(self.aid)
             .build();
 
-        ContinuationHandler::SendToNode(hid, msg)
+        ContinuationHandler::SendToNode(sender, msg)
     }
 
     fn send_back_child_to_node(
@@ -257,7 +256,7 @@ impl Handler {
             .with_to_actor(pid)
             .with_session(sid)
             .with_payload(Payload::BackChild(ns))
-            .with_hid(self.aid)
+            .with_sender(self.aid)
             .build();
 
         ContinuationHandler::SendToNode(pid, msg)
@@ -310,10 +309,10 @@ fn main() {
         // the payload 999, starting with the first node.
 
         let msg = Builder::with_from_api()
-            .with_to_actor(*p1.aid())
+            .with_to_actor(p1.aid())
             .with_session(50.into())
             .with_payload(Payload::Start)
-            .with_hid(*p1.aid())
+            .with_sender(p1.aid())
             .build();
 
         let _ = p1.send(msg).await;

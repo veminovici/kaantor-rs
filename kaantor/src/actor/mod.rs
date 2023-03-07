@@ -61,7 +61,7 @@ where
 
     fn handle(&mut self, msg: PMsg<H::Payload>, _: &mut Context<Self>) {
         let me = self.ph.aid();
-        let hid = msg.hid().clone();
+        let sender = msg.sender();
         let fid = msg.fid().clone();
         let tid = msg.tid().clone();
         let sid = *msg.sid();
@@ -69,7 +69,7 @@ where
 
         info!(
             "RECV | on {} from {} | {}->{} | {} | {:?}",
-            me, hid, fid, tid, sid, pld
+            me, sender, fid, tid, sid, pld
         );
 
         let res = self.ph.receive(&self.proxies, msg);

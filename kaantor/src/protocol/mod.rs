@@ -2,13 +2,13 @@
 
 mod builder;
 mod fid;
-mod hid;
+mod sender;
 mod sid;
 mod tid;
 
 pub use builder::*;
 pub use fid::*;
-pub use hid::*;
+pub use sender::*;
 pub use sid::*;
 pub use tid::*;
 
@@ -20,7 +20,7 @@ pub struct Message<P> {
     pub(crate) fid: FromId,
     pub(crate) tid: ToId,
     pub(crate) sid: SessionId,
-    pub(crate) hid: HopId,
+    pub(crate) sender: SenderId,
     pub(crate) payload: P,
 }
 
@@ -32,7 +32,7 @@ where
         write!(
             f,
             "[{}] [{}-->{}] [{}]",
-            &self.sid, &self.fid, &self.tid, &self.hid
+            &self.sid, &self.fid, &self.tid, &self.sender
         )
     }
 }
@@ -54,8 +54,8 @@ impl<P> Message<P> {
     }
 
     /// Get the `HopId`
-    pub fn hid(&self) -> &HopId {
-        &self.hid
+    pub fn sender(&self) -> &SenderId {
+        &self.sender
     }
 
     /// Get the payload.

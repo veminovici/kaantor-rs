@@ -53,7 +53,7 @@ impl ProtocolHandler for MyHandler {
                     .with_to_all_actors()
                     .with_session(*sid)
                     .with_payload(MyPayload::Forward(*value))
-                    .with_hid(self.aid)
+                    .with_sender(self.aid)
                     .build();
 
                 ContinuationHandler::SendToAllNodes(msg)
@@ -66,9 +66,9 @@ impl ProtocolHandler for MyHandler {
                     self.sessions.push(sid.clone());
 
                     // forward the message to all neighbours excepts the source.
-                    let hid: ActorId = msg.hid().aid();
-                    let msg = Builder::with_message(msg).with_hid(self.aid).build();
-                    ContinuationHandler::SendToAllNodesExcept(msg, vec![hid])
+                    let sender: ActorId = msg.sender().as_aid();
+                    let msg = Builder::with_message(msg).with_sender(self.aid).build();
+                    ContinuationHandler::SendToAllNodesExcept(msg, vec![sender])
                 } else {
                     debug!("Received a message for a recorded sessions {:?}", sid);
                     ContinuationHandler::Done
@@ -103,10 +103,10 @@ fn main() {
         // the payload 999, starting with the first node.
 
         let msg = Builder::with_from_api()
-            .with_to_actor(*p1.aid())
+            .with_to_actor(p1.aid())
             .with_session(50.into())
             .with_payload(MyPayload::Start(999))
-            .with_hid(*p1.aid())
+            .with_sender(p1.aid())
             .build();
 
         let _ = p1.send(msg).await;

@@ -50,8 +50,8 @@ where
     }
 
     /// Gets the acotr identifier.
-    pub fn aid(&self) -> &ActorId {
-        &self.aid
+    pub fn aid(&self) -> ActorId {
+        self.aid
     }
 
     fn get_cfg_proxy(aid: ActorId, addr: Addr<A>) -> Proxy<GMsg<P>> {

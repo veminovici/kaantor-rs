@@ -2,37 +2,37 @@ use crate::ActorId;
 use std::fmt::{Debug, Display};
 
 /// Reprsents the sender of the message for this current leg.
-#[derive(PartialEq, Clone)]
-pub struct HopId(ActorId);
+#[derive(PartialEq, Clone, Copy)]
+pub struct SenderId(ActorId);
 
-impl Debug for HopId {
+impl Debug for SenderId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }
 }
 
-impl Display for HopId {
+impl Display for SenderId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }
 }
 
-impl From<ActorId> for HopId {
+impl From<ActorId> for SenderId {
     fn from(value: ActorId) -> Self {
         Self(value)
     }
 }
 
-impl From<usize> for HopId {
+impl From<usize> for SenderId {
     fn from(value: usize) -> Self {
         let aid = ActorId::from(value);
         Self::from(aid)
     }
 }
 
-impl HopId {
+impl SenderId {
     /// Retrieves the actor id.
-    pub fn aid(&self) -> ActorId {
+    pub fn as_aid(&self) -> ActorId {
         self.0
     }
 }
