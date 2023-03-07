@@ -4,13 +4,25 @@ use kantor::{
     NodeActor, *,
 };
 use log::{debug, info};
+use std::fmt::Debug;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 enum Payload {
     Start,
     Go,
     BackChild,
     BackNoChild,
+}
+
+impl Debug for Payload {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Start => write!(f, "START"),
+            Self::Go => write!(f, "GO"),
+            Self::BackChild => write!(f, "BACK CHILD"),
+            Self::BackNoChild => write!(f, "BACK NOT A CHILD"),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -171,20 +183,28 @@ impl Handler {
         ContinuationHandler::SendToAllNodesExcept(msg, except)
     }
 
-    fn send_back_no_child_to_node(&self, sid: SessionId, hid: ActorId) -> ContinuationHandler<Payload> {
+    fn send_back_no_child_to_node(
+        &self,
+        sid: SessionId,
+        hid: ActorId,
+    ) -> ContinuationHandler<Payload> {
         // info!("{} em={} p={:?}", self.aid, self.exp_messages, self.parent);
 
         let msg = Builder::with_from_actor(self.aid)
-        .with_to_actor(hid)
-        .with_session(sid)
-        .with_payload(Payload::BackNoChild)
-        .with_hid(self.aid)
-        .build();
+            .with_to_actor(hid)
+            .with_session(sid)
+            .with_payload(Payload::BackNoChild)
+            .with_hid(self.aid)
+            .build();
 
         ContinuationHandler::SendToNode(hid, msg)
     }
 
-    fn send_back_child_to_node(&self, sid: SessionId, hid: ActorId) -> ContinuationHandler<Payload> {
+    fn send_back_child_to_node(
+        &self,
+        sid: SessionId,
+        hid: ActorId,
+    ) -> ContinuationHandler<Payload> {
         // info!("Back_Child (0) to_actor={hid} send_to_node={hid}");
 
         let msg = Builder::with_from_actor(self.aid)
