@@ -25,12 +25,27 @@ where
 impl<H> NodeActor<H>
 where
     H: ProtocolHandler,
+    <H as ProtocolHandler>::Payload: Debug,
 {
     fn new(ph: H) -> Self {
         Self {
             proxies: Default::default(),
             ph,
         }
+    }
+
+    fn info_msg(&self, msg: &PMsg<H::Payload>) {
+        let me = self.ph.aid();
+        let sender = msg.sender();
+        let fid = msg.fid().clone();
+        let to = msg.to().clone();
+        let sid = *msg.sid();
+        let pld = msg.payload();
+
+        info!(
+            "RECV | on {} from {} | {}->{} | {} | {:?}",
+            me, sender, fid, to, sid, pld
+        );
     }
 }
 
@@ -60,23 +75,14 @@ where
     type Result = ();
 
     fn handle(&mut self, msg: PMsg<H::Payload>, _: &mut Context<Self>) {
+        self.info_msg(&msg);
         let me = self.ph.aid();
-        let sender = msg.sender();
-        let fid = msg.fid().clone();
-        let tid = msg.tid().clone();
-        let sid = *msg.sid();
-        let pld = msg.payload();
-
-        info!(
-            "RECV | on {} from {} | {}->{} | {} | {:?}",
-            me, sender, fid, tid, sid, pld
-        );
 
         let res = self.ph.receive(&self.proxies, msg);
         match res {
             ContinuationHandler::SendToNode(tid, msg) => {
                 let from = msg.fid();
-                let to = msg.tid();
+                let to = msg.to();
                 let sid = *msg.sid();
                 let pld = msg.payload();
                 info!(
@@ -88,7 +94,7 @@ where
             }
             ContinuationHandler::SendToAllNodes(msg) => {
                 let from = msg.fid();
-                let to = msg.tid();
+                let to = msg.to();
                 let sid = *msg.sid();
                 let pld = msg.payload();
                 info!(
@@ -100,7 +106,7 @@ where
             }
             ContinuationHandler::SendToAllNodesExcept(msg, except) => {
                 let from = msg.fid();
-                let to = msg.tid();
+                let to = msg.to();
                 let sid = *msg.sid();
                 let pld = msg.payload();
                 info!(

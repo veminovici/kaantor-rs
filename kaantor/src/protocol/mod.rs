@@ -4,13 +4,13 @@ mod builder;
 mod fid;
 mod sender;
 mod sid;
-mod tid;
+mod to;
 
 pub use builder::*;
 pub use fid::*;
 pub use sender::*;
 pub use sid::*;
-pub use tid::*;
+pub use to::*;
 
 use std::fmt::Debug;
 
@@ -18,7 +18,7 @@ use std::fmt::Debug;
 #[derive(Clone)]
 pub struct Message<P> {
     pub(crate) fid: FromId,
-    pub(crate) tid: ToId,
+    pub(crate) to: To,
     pub(crate) sid: SessionId,
     pub(crate) sender: SenderId,
     pub(crate) payload: P,
@@ -32,7 +32,7 @@ where
         write!(
             f,
             "[{}] [{}-->{}] [{}]",
-            &self.sid, &self.fid, &self.tid, &self.sender
+            &self.sid, &self.fid, &self.to, &self.sender
         )
     }
 }
@@ -44,8 +44,8 @@ impl<P> Message<P> {
     }
 
     /// Get the `ToId`
-    pub fn tid(&self) -> &ToId {
-        &self.tid
+    pub fn to(&self) -> &To {
+        &self.to
     }
 
     /// Get the `SessionId`

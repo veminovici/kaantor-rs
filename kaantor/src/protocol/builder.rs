@@ -10,7 +10,7 @@ mod states {
     /// Builder with `FromId`
     pub struct WithFromId {}
     /// Builder with `ToId`
-    pub struct WithToId {}
+    pub struct WithTo {}
     /// Builder with `SessionId`
     pub struct WithSessionId {}
     /// Builder with payload
@@ -22,7 +22,7 @@ mod states {
 /// A builder for the protocol messages.
 pub struct Builder<P, S = states::New> {
     fid: Option<FromId>,
-    tid: Option<ToId>,
+    to: Option<To>,
     sid: Option<SessionId>,
     sender: Option<SenderId>,
     payload: Option<P>,
@@ -39,7 +39,7 @@ impl<P> Builder<P, states::New> {
     fn new() -> Builder<P> {
         Self {
             fid: None,
-            tid: None,
+            to: None,
             sid: None,
             payload: None,
             sender: None,
@@ -52,7 +52,7 @@ impl<P> Builder<P, states::New> {
     pub fn with_message(msg: super::Message<P>) -> Builder<P, states::WithPayload> {
         Builder::<P, states::WithPayload> {
             fid: Some(msg.fid),
-            tid: Some(msg.tid),
+            to: Some(msg.to),
             sid: Some(msg.sid),
             payload: Some(msg.payload),
             sender: None,
@@ -64,7 +64,7 @@ impl<P> Builder<P, states::New> {
     pub fn with_from_actor(aid: ActorId) -> Builder<P, states::WithFromId> {
         Builder::<P, states::WithFromId> {
             fid: Some(FromId::Actor(aid)),
-            tid: None,
+            to: None,
             sid: None,
             payload: None,
             sender: None,
@@ -76,7 +76,7 @@ impl<P> Builder<P, states::New> {
     pub fn with_from_api() -> Builder<P, states::WithFromId> {
         Builder::<P, states::WithFromId> {
             fid: Some(FromId::Api),
-            tid: None,
+            to: None,
             sid: None,
             payload: None,
             sender: None,
@@ -86,14 +86,14 @@ impl<P> Builder<P, states::New> {
 
     /// Initializes the building chain by creating a builder initialized
     /// with the `FromId` and `ToId` values from a given message.
-    pub fn with_from_to(msg: &super::Message<P>) -> Builder<P, states::WithToId> {
+    pub fn with_from_to(msg: &super::Message<P>) -> Builder<P, states::WithTo> {
         let fid = msg.fid().clone();
-        let tid = msg.tid().clone();
+        let to = msg.to().clone();
         let sid = *msg.sid();
 
-        Builder::<P, states::WithToId> {
+        Builder::<P, states::WithTo> {
             fid: Some(fid),
-            tid: Some(tid),
+            to: Some(to),
             sid: Some(sid),
             payload: None,
             sender: None,
@@ -104,10 +104,10 @@ impl<P> Builder<P, states::New> {
 
 impl<P> Builder<P, states::WithFromId> {
     /// Continues the building chain by setting the `ToId` value to an actor.
-    pub fn with_to_actor(self, aid: ActorId) -> Builder<P, states::WithToId> {
-        Builder::<P, states::WithToId> {
+    pub fn with_to_actor(self, aid: ActorId) -> Builder<P, states::WithTo> {
+        Builder::<P, states::WithTo> {
             fid: self.fid,
-            tid: Some(ToId::Actor(aid)),
+            to: Some(To::from(aid)),
             sid: self.sid,
             payload: self.payload,
             sender: self.sender,
@@ -116,10 +116,10 @@ impl<P> Builder<P, states::WithFromId> {
     }
 
     /// Continues the building chain by setting the `ToId` value to all actors.
-    pub fn with_to_all_actors(self) -> Builder<P, states::WithToId> {
-        Builder::<P, states::WithToId> {
+    pub fn with_to_all_actors(self) -> Builder<P, states::WithTo> {
+        Builder::<P, states::WithTo> {
             fid: self.fid,
-            tid: Some(ToId::All),
+            to: Some(To::All),
             sid: self.sid,
             payload: self.payload,
             sender: self.sender,
@@ -128,12 +128,12 @@ impl<P> Builder<P, states::WithFromId> {
     }
 }
 
-impl<P> Builder<P, states::WithToId> {
+impl<P> Builder<P, states::WithTo> {
     /// Continues the building chain by setting the session identifier.
     pub fn with_session(self, sid: SessionId) -> Builder<P, states::WithSessionId> {
         Builder::<P, states::WithSessionId> {
             fid: self.fid,
-            tid: self.tid,
+            to: self.to,
             sid: Some(sid),
             payload: self.payload,
             sender: self.sender,
@@ -147,7 +147,7 @@ impl<P> Builder<P, states::WithSessionId> {
     pub fn with_payload(self, payload: P) -> Builder<P, states::WithPayload> {
         Builder::<P, states::WithPayload> {
             fid: self.fid,
-            tid: self.tid,
+            to: self.to,
             sid: self.sid,
             payload: Some(payload),
             sender: self.sender,
@@ -161,7 +161,7 @@ impl<P> Builder<P, states::WithPayload> {
     pub fn with_sender(self, sender: ActorId) -> Builder<P, states::Ready> {
         Builder::<P, states::Ready> {
             fid: self.fid,
-            tid: self.tid,
+            to: self.to,
             sid: self.sid,
             payload: self.payload,
             sender: Some(sender.into()),
@@ -175,7 +175,7 @@ impl<P> Builder<P, states::Ready> {
     pub fn build(self) -> super::Message<P> {
         super::Message {
             fid: self.fid.unwrap(),
-            tid: self.tid.unwrap(),
+            to: self.to.unwrap(),
             sid: self.sid.unwrap(),
             sender: self.sender.unwrap(),
             payload: self.payload.unwrap(),
@@ -197,7 +197,7 @@ mod utests {
             .build();
 
         assert_eq!(FromId::from(5), msg.fid);
-        assert_eq!(ToId::from(10), msg.tid);
+        assert_eq!(To::from(10), msg.to);
         assert_eq!(SessionId::from(50), msg.sid);
         assert_eq!(SenderId::from(200), msg.sender);
         assert_eq!(5000, msg.payload);
@@ -205,7 +205,7 @@ mod utests {
         let msg = Builder::with_message(msg).with_sender(300.into()).build();
 
         assert_eq!(FromId::from(5), msg.fid);
-        assert_eq!(ToId::from(10), msg.tid);
+        assert_eq!(To::from(10), msg.to);
         assert_eq!(SessionId::from(50), msg.sid);
         assert_eq!(SenderId::from(300), msg.sender);
         assert_eq!(5000, msg.payload);
