@@ -16,7 +16,7 @@ struct STNode {
 
 impl Debug for STNode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "{:?}->{:?}", self.root, self.children)
+        write!(f, "{:?}->[{}]", self.root, debug_iter(self.children.iter()))
     }
 }
 
@@ -33,7 +33,7 @@ impl Debug for Payload {
         match self {
             Self::Start => write!(f, "START"),
             Self::Go(l) => write!(f, "GO {}", l),
-            Self::BackChild(ns) => write!(f, "BACK CHILD | {:?}", ns),
+            Self::BackChild(ns) => write!(f, "BACK CHILD | {}", debug_iter(ns.iter())),
             Self::BackNoChild => write!(f, "BACK NOT A CHILD"),
         }
     }
@@ -157,10 +157,10 @@ impl Handler {
                     // Continue the discovery of the spanning tree by sending
                     // a GO message to all the neighbours except the one that
                     // sent us the GO.
-                    self.send_go_to_all_except(session.clone(), level + 1, vec![sender])    
+                    self.send_go_to_all_except(session.clone(), level + 1, vec![sender])
                 } else {
                     let sender = msg.sender().as_aid();
-                    self.send_back_no_child_to_node(*session, sender)    
+                    self.send_back_no_child_to_node(*session, sender)
                 }
             }
         }
@@ -337,4 +337,3 @@ fn main() {
 
     println!("Finished the test");
 }
-

@@ -16,7 +16,7 @@ struct STNode {
 
 impl Debug for STNode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "{:?}->{:?}", self.root, self.children)
+        write!(f, "{:?}->[{}]", self.root, debug_iter(self.children.iter()))
     }
 }
 
@@ -33,7 +33,9 @@ impl Debug for Payload {
         match self {
             Self::Start => write!(f, "START"),
             Self::Go => write!(f, "GO"),
-            Self::BackChild(ns) => write!(f, "BACK CHILD | {:?}", ns),
+            Self::BackChild(ns) => {
+                write!(f, "BACK CHILD | {}", debug_iter(ns.iter()))
+            }
             Self::BackNoChild => write!(f, "BACK NOT A CHILD"),
         }
     }

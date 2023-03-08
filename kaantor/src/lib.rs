@@ -14,6 +14,7 @@ pub use node::{Node, Proxies};
 use actix::{dev::ToEnvelope, prelude::*};
 use log::debug;
 use protocol::Message as PMsg;
+use std::fmt::Debug;
 
 type GMsg<P> = graph::GraphMsg<PMsg<P>>;
 
@@ -63,3 +64,18 @@ where
     let _ = a.add_proxy(pxy_b).await;
     let _ = b.add_proxy(pxy_a).await;
 }
+
+/// Returns the debuging version of an iterator
+pub fn debug_iter<'a, I>(ns: impl Iterator<Item = &'a I>) -> String
+where I: Debug + 'a 
+{
+    ns.fold("".to_string(), |acc, n| {
+        if acc.is_empty() {
+            format!("{:?}", n)
+        }
+        else {
+            format!("{}, {:?}", acc, n)
+        }
+    })
+}
+
