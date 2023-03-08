@@ -67,15 +67,14 @@ where
 
 /// Returns the debuging version of an iterator
 pub fn debug_iter<'a, I>(ns: impl Iterator<Item = &'a I>) -> String
-where I: Debug + 'a 
+where
+    I: Debug + 'a,
 {
     ns.fold("".to_string(), |acc, n| {
         if acc.is_empty() {
-            format!("{:?}", n)
-        }
-        else {
-            format!("{}, {:?}", acc, n)
+            format!("{n:?}")
+        } else {
+            format!("{acc}, {n:?}")
         }
     })
 }
-
