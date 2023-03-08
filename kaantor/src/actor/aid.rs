@@ -1,18 +1,18 @@
-use std::fmt::{Debug, Display};
+use std::fmt::Debug;
 
 /// The identifier for an actor
 #[derive(PartialEq, Clone, Copy)]
 pub struct ActorId(usize);
 
-impl Display for ActorId {
+impl Debug for ActorId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "A{}", self.0)
     }
 }
 
-impl Debug for ActorId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+impl ActorId {
+    pub(crate) fn inner(&self) -> usize {
+        self.0
     }
 }
 

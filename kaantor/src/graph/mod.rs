@@ -1,6 +1,6 @@
 //! Graph of nodes
 //!
-use std::fmt::Display;
+use std::fmt::Debug;
 
 use actix::prelude::*;
 
@@ -9,7 +9,7 @@ use crate::proxy::Proxy;
 /// Represents the configuration message
 /// which can be send to the nodes to configure
 /// the connectivity graph.
-#[derive(Debug, Message)]
+#[derive(Message)]
 #[rtype(result = "()")]
 pub enum GraphMsg<M>
 where
@@ -20,14 +20,14 @@ where
     AddProxy(Proxy<M>),
 }
 
-impl<M> Display for GraphMsg<M>
+impl<M> Debug for GraphMsg<M>
 where
     M: Message + Send,
     M::Result: Send,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            GraphMsg::AddProxy(pxy) => write!(f, "add {}", pxy.aid),
+            GraphMsg::AddProxy(pxy) => write!(f, "add {:?}", pxy.aid),
         }
     }
 }

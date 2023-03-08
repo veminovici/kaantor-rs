@@ -38,7 +38,7 @@ where
     #[inline]
     fn debug_op(&self, op: &str, from: &ActorId) {
         let to = &self.aid;
-        debug!("{} [{}-->{}]", op, from, to)
+        debug!("{} [{:?}-->{:?}]", op, from, to)
     }
 
     fn new(aid: ActorId, recipient: Recipient<M>) -> Self {

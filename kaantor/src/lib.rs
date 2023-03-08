@@ -55,7 +55,7 @@ where
     A: Handler<GMsg<P>>,
     A::Context: ToEnvelope<A, GMsg<P>>,
 {
-    debug!("add edge [{}-{}]", a.aid(), b.aid());
+    debug!("add edge [{:?}-{:?}]", a.aid(), b.aid());
 
     let pxy_a = a.as_proxy();
     let pxy_b = b.as_proxy();

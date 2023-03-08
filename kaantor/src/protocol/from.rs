@@ -1,41 +1,32 @@
-use std::fmt::{Debug, Display};
+use std::fmt::Debug;
 
 use crate::ActorId;
 
 /// Represents origin of the message.
 #[derive(PartialEq, Clone)]
-pub enum From {
+pub enum FromId {
     /// The message is originating from an actor
     Actor(ActorId),
     /// A public api invocation
     Api,
 }
 
-impl Debug for From {
+impl Debug for FromId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            From::Actor(aid) => write!(f, "{aid}"),
-            From::Api => write!(f, "api"),
+            FromId::Actor(aid) => write!(f, "F{:?}", aid.inner()),
+            FromId::Api => write!(f, "api"),
         }
     }
 }
 
-impl Display for From {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            From::Actor(aid) => write!(f, "{aid}"),
-            From::Api => write!(f, "api"),
-        }
-    }
-}
-
-impl core::convert::From<ActorId> for From {
+impl From<ActorId> for FromId {
     fn from(value: ActorId) -> Self {
-        From::Actor(value)
+        FromId::Actor(value)
     }
 }
 
-impl core::convert::From<usize> for From {
+impl From<usize> for FromId {
     fn from(value: usize) -> Self {
         let aid = ActorId::from(value);
         Self::from(aid)

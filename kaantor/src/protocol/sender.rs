@@ -1,5 +1,5 @@
 use crate::ActorId;
-use std::fmt::{Debug, Display};
+use std::fmt::Debug;
 
 /// Reprsents the sender of the message for this current leg.
 #[derive(PartialEq, Clone, Copy)]
@@ -7,13 +7,7 @@ pub struct SenderId(ActorId);
 
 impl Debug for SenderId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl Display for SenderId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "S{}", self.0.inner())
     }
 }
 

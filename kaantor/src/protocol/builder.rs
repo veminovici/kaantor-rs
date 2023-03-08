@@ -21,8 +21,8 @@ mod states {
 
 /// A builder for the protocol messages.
 pub struct Builder<P, S = states::New> {
-    from: Option<From>,
-    to: Option<To>,
+    from: Option<FromId>,
+    to: Option<ToId>,
     session: Option<Session>,
     sender: Option<SenderId>,
     payload: Option<P>,
@@ -75,7 +75,7 @@ impl<P> Builder<P, states::New> {
     /// Initializes the building chain by creating a builder from an api invocation
     pub fn with_from_api() -> Builder<P, states::WithFrom> {
         Builder::<P, states::WithFrom> {
-            from: Some(From::Api),
+            from: Some(FromId::Api),
             to: None,
             session: None,
             payload: None,
@@ -107,7 +107,7 @@ impl<P> Builder<P, states::WithFrom> {
     pub fn with_to_actor(self, aid: ActorId) -> Builder<P, states::WithTo> {
         Builder::<P, states::WithTo> {
             from: self.from,
-            to: Some(To::from(aid)),
+            to: Some(ToId::from(aid)),
             session: self.session,
             payload: self.payload,
             sender: self.sender,
@@ -119,7 +119,7 @@ impl<P> Builder<P, states::WithFrom> {
     pub fn with_to_all_actors(self) -> Builder<P, states::WithTo> {
         Builder::<P, states::WithTo> {
             from: self.from,
-            to: Some(To::All),
+            to: Some(ToId::All),
             session: self.session,
             payload: self.payload,
             sender: self.sender,
@@ -196,16 +196,16 @@ mod utests {
             .with_sender(200.into())
             .build();
 
-        assert_eq!(From::from(5), msg.from);
-        assert_eq!(To::from(10), msg.to);
+        assert_eq!(FromId::from(5), msg.from);
+        assert_eq!(ToId::from(10), msg.to);
         assert_eq!(Session::from(50), msg.session);
         assert_eq!(SenderId::from(200), msg.sender);
         assert_eq!(5000, msg.payload);
 
         let msg = Builder::with_message(msg).with_sender(300.into()).build();
 
-        assert_eq!(From::from(5), msg.from);
-        assert_eq!(To::from(10), msg.to);
+        assert_eq!(FromId::from(5), msg.from);
+        assert_eq!(ToId::from(10), msg.to);
         assert_eq!(Session::from(50), msg.session);
         assert_eq!(SenderId::from(300), msg.sender);
         assert_eq!(5000, msg.payload);

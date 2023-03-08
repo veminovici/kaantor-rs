@@ -37,14 +37,14 @@ where
     fn info_msg(&self, msg: &PMsg<H::Payload>) {
         let me = self.ph.aid();
         let sender = msg.sender();
-        let fid = msg.from().clone();
+        let from = msg.from().clone();
         let to = msg.to().clone();
         let session = *msg.session();
         let pld = msg.payload();
 
         info!(
-            "RECV | on {} from {} | {}->{} | {} | {:?}",
-            me, sender, fid, to, session, pld
+            "RECV | on {:?} from {:?} | {:?}->{:?} | {:?} | {:?}",
+            me, sender, from, to, session, pld
         );
     }
 }
@@ -86,7 +86,7 @@ where
                 let sid = *msg.session();
                 let pld = msg.payload();
                 info!(
-                    "SEND | from {} to node {} | {}->{} | {} | {:?}",
+                    "SEND | from {:?} to node {:?} | {:?}->{:?} | {:?} | {:?}",
                     me, to, from, to, sid, pld
                 );
 
@@ -95,11 +95,11 @@ where
             ContinuationHandler::SendToAllNodes(msg) => {
                 let from = msg.from();
                 let to = msg.to();
-                let sid = *msg.session();
+                let session = *msg.session();
                 let pld = msg.payload();
                 info!(
-                    "SEND | from {} to all | {}->{} | {} | {:?}",
-                    me, from, to, sid, pld
+                    "SEND | from {:?} to all | {:?}->{:?} | {:?} | {:?}",
+                    me, from, to, session, pld
                 );
 
                 self.proxies.do_send_all_except(&me, msg, &[])
@@ -107,11 +107,11 @@ where
             ContinuationHandler::SendToAllNodesExcept(msg, except) => {
                 let from = msg.from();
                 let to = msg.to();
-                let sid = *msg.session();
+                let session = *msg.session();
                 let pld = msg.payload();
                 info!(
-                    "SEND | from {} to all-{:?} | {}->{} | {} | {:?}",
-                    me, except, from, to, sid, pld
+                    "SEND | from {:?} to all-{:?} | {:?}->{:?} | {:?} | {:?}",
+                    me, except, from, to, session, pld
                 );
 
                 self.proxies.do_send_all_except(&me, msg, except.as_slice())

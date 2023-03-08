@@ -17,8 +17,8 @@ use std::fmt::Debug;
 /// A protocol message
 #[derive(Clone)]
 pub struct Message<P> {
-    pub(crate) from: From,
-    pub(crate) to: To,
+    pub(crate) from: FromId,
+    pub(crate) to: ToId,
     pub(crate) session: Session,
     pub(crate) sender: SenderId,
     pub(crate) payload: P,
@@ -31,7 +31,7 @@ where
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "[{}] [{}-->{}] [{}]",
+            "[{:?}] [{:?}-->{:?}] [{:?}]",
             &self.session, &self.from, &self.to, &self.sender
         )
     }
@@ -39,12 +39,12 @@ where
 
 impl<P> Message<P> {
     /// Get the `FromId`
-    pub fn from(&self) -> &From {
+    pub fn from(&self) -> &FromId {
         &self.from
     }
 
     /// Get the `ToId`
-    pub fn to(&self) -> &To {
+    pub fn to(&self) -> &ToId {
         &self.to
     }
 

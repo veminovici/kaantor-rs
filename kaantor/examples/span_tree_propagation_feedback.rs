@@ -16,7 +16,7 @@ struct STNode {
 
 impl Debug for STNode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "{}->{:?}", self.root, self.children)
+        writeln!(f, "{:?}->{:?}", self.root, self.children)
     }
 }
 
@@ -69,7 +69,7 @@ impl Handler {
     #[inline]
     fn debug_spanning_node(&self) {
         info!(
-            "SPANNING TREE NODE: {} p={:?} cs={:?}",
+            "SPANNING TREE NODE: {:?} p={:?} cs={:?}",
             self.aid, self.parent, self.children
         );
     }
@@ -80,9 +80,9 @@ impl Handler {
             .find(|n| n.root == nid)
             .map(|n| {
                 if n.children.len() == 0 {
-                    tb.add_empty_child(format!("{}", nid))
+                    tb.add_empty_child(format!("{:?}", nid))
                 } else {
-                    let tb = tb.begin_child(format!("{}", nid));
+                    let tb = tb.begin_child(format!("{:?}", nid));
                     let tb = n
                         .children
                         .iter()
