@@ -18,7 +18,7 @@ impl From<usize> for MyItem {
     }
 }
 
-fn main() {
+fn test1() {
     let n1 = KNode::<MyItem>::new(1.into(), vec![2, 3]);
     let n2 = KNode::<MyItem>::new(2.into(), vec![4, 5]);
     let n3 = KNode::<MyItem>::new(3.into(), vec![6]);
@@ -28,5 +28,19 @@ fn main() {
     let n7 = KNode::<MyItem>::new(7.into(), vec![]);
 
     let tree = KTree::new(1, vec![n1, n2, n3, n4, n5, n6, n7]);
-    tree.print("MY TREE");
+    tree.print("TREE1");
+}
+
+fn test2() {
+    let mut n1 = KNode::<MyItem>::new(1.into(), vec![]);
+    let n2 = KNode::<MyItem>::new(2.into(), vec![]);
+    n1.add_child(&n2);
+
+    let tree = KTree::new(1, vec![n1, n2]);
+    tree.print("TREE2");
+}
+
+fn main() {
+    test1();
+    test2();
 }

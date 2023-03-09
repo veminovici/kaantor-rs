@@ -32,8 +32,16 @@ where
     }
 
     #[inline]
-    pub fn is_empty(&self) -> bool {
+    pub fn is_leaf(&self) -> bool {
         self.children.is_empty()
+    }
+
+    pub fn add_child(&mut self, child: &Self)
+    where
+        I::Key: Copy
+    {
+        self.children.extend(&child.children);
+        self.children.extend(vec![child.key()]);
     }
 }
 
@@ -79,7 +87,7 @@ where
         tb: &'a mut TreeBuilder,
     ) -> &'a mut TreeBuilder {
         if let Some(node) = self.nodes.iter().find(|node| node.key() == key) {
-            if node.is_empty() {
+            if node.is_leaf() {
                 tb.add_empty_child(format!("{:?}", key))
             } else {
                 self.prety_child(node, tb)
