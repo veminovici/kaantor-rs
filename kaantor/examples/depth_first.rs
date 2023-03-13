@@ -40,16 +40,19 @@ trait DFHandler {
         msg: &protocol::Message<Payload>,
         ns: impl Iterator<Item = ActorId>,
     ) -> ContinuationHandler<Payload>;
+
     fn handle_go(
         &mut self,
         msg: &protocol::Message<Payload>,
         ns: impl Iterator<Item = ActorId>,
     ) -> ContinuationHandler<Payload>;
+
     fn handle_back_child(
         &mut self,
         msg: &protocol::Message<Payload>,
         ns: impl Iterator<Item = ActorId>,
     ) -> ContinuationHandler<Payload>;
+
     fn handle_back_not_a_child(
         &mut self,
         msg: &protocol::Message<Payload>,
@@ -59,7 +62,9 @@ trait DFHandler {
 
 trait DFSender {
     fn send_go_to_node(&self, sid: Session, to: ActorId) -> ContinuationHandler<Payload>;
+
     fn send_back_child(&self, sid: Session, pid: ActorId) -> ContinuationHandler<Payload>;
+
     fn send_back_no_child(&self, sid: Session, to: ActorId) -> ContinuationHandler<Payload>;
 }
 
