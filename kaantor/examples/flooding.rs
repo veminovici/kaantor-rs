@@ -35,7 +35,7 @@ impl ProtocolHandler for MyHandler {
 
     fn receive(
         &mut self,
-        _proxies: &Proxies<Self::Payload>,
+        _ns: impl Iterator<Item = ActorId>,
         msg: protocol::Message<Self::Payload>,
     ) -> ContinuationHandler<Self::Payload> {
         //println!("Actor {:?} received a protocol {:?} message", self.aid, msg);

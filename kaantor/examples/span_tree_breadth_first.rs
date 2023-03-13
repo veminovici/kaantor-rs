@@ -289,14 +289,14 @@ impl ProtocolHandler for Handler {
 
     fn receive(
         &mut self,
-        proxies: &Proxies<Self::Payload>,
+        ns: impl Iterator<Item = ActorId>,
         msg: protocol::Message<Self::Payload>,
     ) -> ContinuationHandler<Self::Payload> {
         match &msg.payload() {
-            &Payload::Start => self.handle_start(&msg, proxies.aids()),
-            &Payload::Go(level) => self.handle_go(*level, &msg, proxies.aids()),
-            &Payload::BackNoChild => self.handle_back_no_child(&msg, proxies.aids()),
-            &Payload::BackChild(ns) => self.handle_back_child(&msg, ns.clone(), proxies.aids()),
+            &Payload::Start => self.handle_start(&msg, ns),
+            &Payload::Go(level) => self.handle_go(*level, &msg, ns),
+            &Payload::BackNoChild => self.handle_back_no_child(&msg, ns),
+            &Payload::BackChild(nodes) => self.handle_back_child(&msg, nodes.clone(), ns),
         }
     }
 }

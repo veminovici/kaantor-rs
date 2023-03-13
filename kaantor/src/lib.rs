@@ -41,10 +41,13 @@ pub trait ProtocolHandler {
     /// Processes the received message.
     fn receive(
         &mut self,
-        proxies: &Proxies<Self::Payload>,
+        neighbours: impl Iterator::<Item = ActorId>, // &Proxies<Self::Payload>,
         msg: protocol::Message<Self::Payload>,
     ) -> ContinuationHandler<Self::Payload>;
 }
+
+/// Convenience type
+pub type NodeHandler<T> = Node<NodeActor<T>, <T as ProtocolHandler>::Payload>;
 
 /// Add a bi-directional connection between two ndoes.
 pub async fn add_edge<A, P>(a: &mut Node<A, P>, b: &mut Node<A, P>)

@@ -38,7 +38,7 @@ where
 
     pub fn add_child(&mut self, child: &Self)
     where
-        I::Key: Copy
+        I::Key: Copy,
     {
         self.children.extend(&child.children);
         self.children.extend(vec![child.key()]);

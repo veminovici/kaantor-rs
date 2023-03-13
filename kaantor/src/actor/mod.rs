@@ -77,8 +77,9 @@ where
     fn handle(&mut self, msg: PMsg<H::Payload>, _: &mut Context<Self>) {
         self.info_msg(&msg);
         let me = self.ph.aid();
+        let ns = self.proxies.aids();
 
-        let res = self.ph.receive(&self.proxies, msg);
+        let res = self.ph.receive(ns, msg);
         match res {
             ContinuationHandler::SendToNode(tid, msg) => {
                 let from = msg.from();
