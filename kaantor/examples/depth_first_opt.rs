@@ -88,10 +88,12 @@ impl DFHandler for Handler {
         ns: &mut impl Iterator<Item = ActorId>,
     ) -> ContinuationHandler<Payload> {
         self.parent = Parent::Root;
+
         match ns.next() {
             Some(to) => {
                 self.children.push(to);
-                let visited = vec![to];
+                let visited = vec![self.aid];
+
                 self.send_go_to_node(*msg.session(), to, visited)
             }
             None => {
