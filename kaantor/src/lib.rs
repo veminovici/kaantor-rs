@@ -41,7 +41,7 @@ pub trait ProtocolHandler {
     /// Processes the received message.
     fn receive(
         &mut self,
-        neighbours: impl Iterator::<Item = ActorId>, // &Proxies<Self::Payload>,
+        neighbours: impl Iterator<Item = ActorId>, // &Proxies<Self::Payload>,
         msg: protocol::Message<Self::Payload>,
     ) -> ContinuationHandler<Self::Payload>;
 }
