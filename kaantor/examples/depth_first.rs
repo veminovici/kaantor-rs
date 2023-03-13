@@ -76,6 +76,11 @@ impl Handler {
         }
     }
 
+    fn handle_node_done(&mut self) -> ContinuationHandler<Payload> {
+        self.debug_spanning_node();
+        ContinuationHandler::Done
+    }
+
     fn handle_go(
         &mut self,
         msg: &protocol::Message<Payload>,
@@ -86,22 +91,23 @@ impl Handler {
                 let sender = msg.sender().as_aid();
                 self.parent = Parent::Parent(sender);
                 self.visited.push(sender);
-                if self.visited.iter() == ns {
-                    self.debug_spanning_node();
-                    // send BACK(yes) to the sender.
+                if ns.eq(self.visited.clone()) {
+                    self.handle_node_done()
                 } else {
                     // pick one of the neighbours that is not visited
                     // and send a GO message to it
+                    todo!()
                 }
             },
             Parent::Root => {
                 // send a BACK(no) to the sender.
+                todo!()
             },
             Parent::Parent(_) => {
                 // send a BACK(no) to the sender.
+                todo!()
             },
         }
-        ContinuationHandler::Done
     }
 
     #[inline]
@@ -130,18 +136,14 @@ impl Handler {
     ) -> ContinuationHandler<Payload> {
         self.visited.push(msg.sender().as_aid());
 
-        if self.visited.iter() == ns {
-            self.debug_spanning_node();
-            // If parent is root - we are done
-            // If parent is a node - we send BACK(yes) to the parent
-
+        if ns.eq(self.visited.clone()) {
+            self.handle_node_done()
         } else {
-            // pick one neighbours
-            // and send GO to it.
+            // pick one of the neighbours that is not visited
+            // and send a GO message to it
+            todo!()
         }
-
-        ContinuationHandler::Done
-    }
+}
 
     fn send_go_to_all_except(
         &self,
@@ -176,7 +178,7 @@ impl ProtocolHandler for Handler {
             &Payload::Start => self.handle_start(&msg, ns),
             &Payload::Go => self.handle_go(&msg, ns),
             &Payload::BackYes => self.handle_back_child(&msg, ns),
-            _ => unimplemented!("Not implemented yet"),
+            &Payload::BackNotAChild => self.handle_back_not_a_child(&msg, ns),
         }
     }
 }
