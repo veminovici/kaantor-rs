@@ -12,7 +12,7 @@ use ptree::*;
 enum Payload {
     Start,
     Go,
-    BackYes,
+    BackChild,
     BackNotAChild,
 }
 
@@ -21,7 +21,7 @@ impl Debug for Payload {
         match self {
             Self::Start => write!(f, "START"),
             Self::Go => write!(f, "GO"),
-            Self::BackYes => write!(f, "BACK CHILD"),
+            Self::BackChild => write!(f, "BACK CHILD"),
             Self::BackNotAChild => write!(f, "BACK NOT A CHILD"),
         }
     }
@@ -76,9 +76,20 @@ impl Handler {
         }
     }
 
-    fn handle_node_done(&mut self) -> ContinuationHandler<Payload> {
+    fn handle_node_done(&mut self,  msg: &protocol::Message<Payload>,
+    ) -> ContinuationHandler<Payload> {
         self.debug_spanning_node();
-        ContinuationHandler::Done
+
+        match self.parent {
+            Parent::NoParent => panic!("We should not be here!"),
+            Parent::Root => {
+                info!("Finished the spanning tree");
+                ContinuationHandler::Done
+            },
+            Parent::Parent(pid) => {
+                self.send_back_child(*msg.session(), pid)
+            },
+        }
     }
 
     fn handle_go(
@@ -91,21 +102,18 @@ impl Handler {
                 let sender = msg.sender().as_aid();
                 self.parent = Parent::Parent(sender);
                 self.visited.push(sender);
-                if ns.eq(self.visited.clone()) {
-                    self.handle_node_done()
-                } else {
-                    // pick one of the neighbours that is not visited
-                    // and send a GO message to it
-                    todo!()
+
+                match ns.into_iter().find(|n| !self.visited.contains(n)) {
+                    Some(to) => self.send_go_to_node(*msg.session(), to),
+                    None => self.handle_node_done(msg),
                 }
             },
             Parent::Root => {
                 // send a BACK(no) to the sender.
-                todo!()
+                self.send_back_no_child(*msg.session(), msg.sender().as_aid())
             },
             Parent::Parent(_) => {
-                // send a BACK(no) to the sender.
-                todo!()
+                self.send_back_no_child(*msg.session(), msg.sender().as_aid())
             },
         }
     }
@@ -136,14 +144,57 @@ impl Handler {
     ) -> ContinuationHandler<Payload> {
         self.visited.push(msg.sender().as_aid());
 
-        if ns.eq(self.visited.clone()) {
-            self.handle_node_done()
-        } else {
-            // pick one of the neighbours that is not visited
-            // and send a GO message to it
-            todo!()
+        match ns.into_iter().find(|n| !self.visited.contains(n)) {
+            Some(to) => self.send_go_to_node(*msg.session(), to),
+            None => self.handle_node_done(msg),
         }
-}
+    }
+
+    fn send_go_to_node(
+        &self,
+        session: Session,
+        to: ActorId,
+    ) -> ContinuationHandler<Payload> {
+        let msg = Builder::with_from_actor(self.aid)
+            .with_to_actor(to)
+            .with_session(session)
+            .with_payload(Payload::Go)
+            .with_sender(self.aid)
+            .build();
+
+            ContinuationHandler::SendToNode(to, msg)
+    }
+
+    fn send_back_child(
+        &self,
+        session: Session,
+        pid: ActorId,
+    ) -> ContinuationHandler<Payload> {
+        let msg = Builder::with_from_actor(self.aid)
+            .with_to_actor(pid)
+            .with_session(session)
+            .with_payload(Payload::BackChild)
+            .with_sender(self.aid)
+            .build();
+
+        ContinuationHandler::SendToNode(pid, msg)
+    }
+
+    fn send_back_no_child(
+        &self,
+        session: Session,
+        to: ActorId,
+    ) -> ContinuationHandler<Payload> {
+        let msg = Builder::with_from_actor(self.aid)
+            .with_to_actor(to)
+            .with_session(session)
+            .with_payload(Payload::BackNotAChild)
+            .with_sender(self.aid)
+            .build();
+
+        ContinuationHandler::SendToNode(to, msg)
+    }
+
 
     fn send_go_to_all_except(
         &self,
@@ -177,7 +228,7 @@ impl ProtocolHandler for Handler {
         match msg.payload() {
             &Payload::Start => self.handle_start(&msg, ns),
             &Payload::Go => self.handle_go(&msg, ns),
-            &Payload::BackYes => self.handle_back_child(&msg, ns),
+            &Payload::BackChild => self.handle_back_child(&msg, ns),
             &Payload::BackNotAChild => self.handle_back_not_a_child(&msg, ns),
         }
     }
