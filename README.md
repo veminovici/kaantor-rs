@@ -25,7 +25,7 @@ INFO  RECV | on 5 from 4 | 1->all | 50 | Forward(999)
 INFO  RECV | on 4 from 5 | 1->all | 50 | Forward(999)
 ```
 
-### Spanning Tree
+### Spanning Tree Propagation Feedback
 A traversal using *propagation and feedback* algorithm. You can read more at [source](./kantor/examples/span_tree_propagation_feedback.rs). The graph is made of the nodes: 1, 2, 3, 4, and 5, and the edges 1-2, 1-3, 2-4, 4-5, and 3 -5.
 The result should be:
 
@@ -67,4 +67,20 @@ SPANNING TREE NODE: 1 p=Root cs=[2, 3]
 │  └─ 4
 └─ 3
    └─ 5
+```
+
+### Spanning Tree Breadth-First
+A traversal using *breadth-first* algorithm. You can read more at [source](./kantor/examples/span_tree_breadth_fitst.rs). The graph is made of the nodes: 1, 2, 3, 4, and 5, and the edges 1-2, 1-3, 2-4, 4-5, and 3 -5.
+The result should be:
+
+```bsh
+RUST_LOG=debug cargo run --example span_tree_breadth_first
+```
+
+### Spanning Tree Depth-First
+A traversal using *breadth-first* algorithm. You can read more at [source](./kantor/examples/depth_fitst.rs). The graph is made of the nodes: 1, 2, 3, 4, and 5, and the edges 1-2, 1-3, 2-4, 4-5, and 3 -5.
+The result should be:
+
+```bsh
+RUST_LOG=debug cargo run --example depth_first
 ```
